@@ -11,7 +11,7 @@ To use the code include files/ folders
 - code/\
 at **Iteration1/TremCasso/**
 
-General usgae instructions:
+### General usage instructions:
 SPACEBAR works as a disable key in both the pages. It disables the end effector for everything except the 'exit' button and the 'palette' button.
 
 
