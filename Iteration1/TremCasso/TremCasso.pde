@@ -354,8 +354,9 @@ void page0(){
   back.dettachImage();
   s.h_avatar.setFill(red(colour), green(colour), blue(colour));
   col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
-  world.draw();
   image(canvas,0,0);
+  world.draw();
+  
 }
 void page1(){
   cp.draw(g);
