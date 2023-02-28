@@ -28,10 +28,13 @@ Coloring col;
 FBox paint;
 FBox bottom;
 FBox settings;
+FBox set;
 float[] counters;
-int delay=1200;
+int delay=3000;
 int page=0;
 int colour;
+int count=0;
+boolean click=false;
 PGraphics canvas;
 FPoly              up;
 FPoly              down;
@@ -114,7 +117,7 @@ void setup(){
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
    */
-  haplyBoard          = new Board(this, "COM3", 0);
+  haplyBoard          = new Board(this, "COM8", 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -214,7 +217,9 @@ class SimulationThread implements Runnable{
     s.setToolPosition(edgeTopLeftX+worldWidth/2-(pos_ee).x+2, edgeTopLeftY+(pos_ee).y-3); 
     s.updateCouplingForce();
     f_ee.set(-s.getVCforceX(), s.getVCforceY());
-    f_ee.div(20000); //
+    f_ee.div(20000); 
+    YforceSetter();
+
     
     torques.set(widgetOne.set_device_torques(f_ee.array()));
     widgetOne.device_write_torques();
@@ -255,9 +260,9 @@ class SimulationThread implements Runnable{
       actionMode=true;
       page=1;
     }
-    /*if (s.h_avatar.isTouchingBody(settings)){
-      page=0;
-    }*/
+    if (s.h_avatar.isTouchingBody(settings)){
+      page=2;
+    }
     rendering_force = false;
   }
 }
@@ -334,11 +339,22 @@ public void drawButtons(float[] positions)
       back.setNoStroke();
       world.add(back);
       
+      set=new FBox(1,1);
+      img=loadImage("assets/Placeholder.jpg");
+      img.resize(0,300);
+      set.setNoFill();
+      set.attachImage(img);
+      set.setPosition(12.5,7);
+      set.setStatic(true);
+      set.setSensor(true);
+      set.setNoStroke();
+      world.add(set);
     }
     
 public boolean checkDelay(int index){
   if (millis()-counters[index]>delay){
     counters= new float[]{millis(), millis(), millis(), millis()};
+    click=true;
     return true;
   }
   else
@@ -352,6 +368,7 @@ void page0(){
   right.setNoFill();
   left.setNoFill();
   back.dettachImage();
+  set.dettachImage();
   s.h_avatar.setFill(red(colour), green(colour), blue(colour));
   col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
   image(canvas,0,0);
@@ -364,6 +381,7 @@ void page1(){
   down.setFill(0,0,0);
   left.setFill(0,0,0);
   right.setFill(0,0,0);
+  set.dettachImage();
   PImage img=loadImage("assets/exit.png");
   img.resize(0,100);
   back.attachImage(img);
@@ -372,6 +390,25 @@ void page1(){
   
   colour=cp.getColour(g);
 }
+void page2(){
+  up.setNoFill();
+  down.setNoFill();
+  right.setNoFill();
+  left.setNoFill();
+  PImage img=loadImage("assets/exit.png");
+  img.resize(0,100);
+  back.attachImage(img);
+  img=loadImage("assets/Placeholder.jpg");
+  img.resize(0,300);
+  set.attachImage(img);
+  s.h_avatar.setFill(255, 0, 0);
+  world.draw(); 
+  fill(0, 0, 0);
+  textSize(100);
+  text("Coming soon...", 150, 100);
+  textSize(100);
+}
+
 void pageSelector() { // Replaces method("") for PJS
   switch(page) {
   case 0:
@@ -380,6 +417,10 @@ void pageSelector() { // Replaces method("") for PJS
  
   case 1: 
     page1();
+    break;
+  
+  case 2:
+    page2();
     break;
  
   }
@@ -423,5 +464,17 @@ public void drawGUI(){
   settings.setSensor(true);
   settings.setNoStroke();
   world.add(settings);
+}
+
+public void YforceSetter(){
+  if (click){
+    count++;
+    if (count==10)
+    {
+      click=false;
+      count=0;
+    }
+    f_ee.set(f_ee.x, f_ee.y+2.5);
+  }
 }
 /* end helper functions section ****************************************************************************************/
