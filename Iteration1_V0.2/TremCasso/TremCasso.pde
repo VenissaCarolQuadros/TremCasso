@@ -2,7 +2,7 @@
  **********************************************************************************************************************
  * @file       TremCasso.pde
  * @author     Venissa C Quadros
- * @version    V1.0.0
+ * @version    V0.2
  * @date       23-February-2023
  * @brief      1st iteration of an accessible drawing tool for people with tremors
  **********************************************************************************************************************
@@ -230,6 +230,13 @@ class SimulationThread implements Runnable{
     widgetOne.device_write_torques();
   
     world.step(1.0f/1000.0f);
+    if (page==0){
+      s.h_avatar.setDamping(800);
+    }
+    else{
+      s.h_avatar.setDamping(0);
+    }
+    
     if (page==1 && actionMode==true){
     if (s.h_avatar.isTouchingBody(up)){
       if (checkDelay(0))
