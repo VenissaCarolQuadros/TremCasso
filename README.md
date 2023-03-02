@@ -9,7 +9,7 @@ To use the code include files/ folders
 - Pwm.java
 - Sensor.java
 - code/\
-at **Iteration1/TremCasso/**
+at **Iteration1_V0.x/TremCasso/**
 
 ### General usage instructions:
 SPACEBAR works as a disable key in both the pages. It disables the end effector for everything except the 'exit' button and the 'palette' button.
