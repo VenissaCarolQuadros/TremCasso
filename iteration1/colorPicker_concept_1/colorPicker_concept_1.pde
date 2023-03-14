@@ -156,9 +156,9 @@ void setup(){
   size(1200, 900);
   orientation = 'v'; // v or h
   rows = 1; // 1 or 2
-  NoOfSwatches = 3;
-  swatchSize = 3.5;
-  distanceBetweenSwatches = 1.5;
+  NoOfSwatches = 6;
+  swatchSize = 2.5;
+  distanceBetweenSwatches = 2.5;
   
   
   b1                  = new FBox(0.3, 15.5);
@@ -264,7 +264,7 @@ if(orientation == 'v'){
  
  // Colors
 
-  //color 1  x,  y,  w,  h, r,  g,  b
+  //color   x,  y,  w,  h, r,  g,  b
   if(NoOfSwatches >= 1){
     //color 1
     color1 =  create_rect(25, 160, swatchSize*40,160, 255, 237, 0);
