@@ -155,8 +155,8 @@ void setup(){
 // Parameters
   size(1200, 900);
   orientation = 'v'; // v or h
-  rows = 1; // 1 or 2
-  NoOfSwatches = 6;
+  rows = 2; // 1 or 2 with sahdes
+  NoOfSwatches = 3;
   swatchSize = 2.5;
   distanceBetweenSwatches = 2.5;
   
@@ -210,14 +210,14 @@ if(orientation == 'v'){
    }
   
    
-       b1                  = new FBox(0.3, 15.5);
+    b1                  = new FBox(0.3, 15.5);
     b1.setPosition(edgeTopLeftX+worldWidth/1.0-25+((distanceBetweenSwatches + swatchSize)*NoOfSwatches-distanceBetweenSwatches), edgeTopLeftY+worldHeight/2.0-2.8); 
     b1.setFill(0);
     b1.setNoStroke();
     b1.setStaticBody(true);
     world.add(b1);
    
-   // second level
+   // shades
     if (rows == 2){
       vPosX = 25;
       cPosX = 25 - (swatchSize +(distanceBetweenSwatches/2));
@@ -262,66 +262,69 @@ if(orientation == 'v'){
  
  
  
- // Colors
+ // Colors, what is the range of colors ???
 
   //color   x,  y,  w,  h, r,  g,  b
   if(NoOfSwatches >= 1){
     //color 1
     color1 =  create_rect(25, 160, swatchSize*40,160, 255, 237, 0);
-  }  if(NoOfSwatches >= 2) {
+    if (rows == 2){
+      // first shade of each color
+      color11 = create_rect(25, 460, swatchSize*40,160, 255, 252, 217);
+      color21 = create_rect(25, 460, swatchSize*40,160, 255, 217, 217);
+      color31 = create_rect(25, 460, swatchSize*40,160, 217, 227, 242);
+      color41 = create_rect(25, 460, swatchSize*40,160, 217, 244, 217);   
+      color51 = create_rect(25, 460, swatchSize*40,160, 255, 240, 217);
+    }
+  }  
+  if(NoOfSwatches >= 2) {
    //color 2
     color2 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*40), 160, swatchSize*40,160, 255, 0, 0);
-  }  if(NoOfSwatches >= 3) {
+    if (rows == 2){
+      // second shade of each color
+      color12 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 255, 249, 166);
+      color22 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 255, 166, 166);
+      color32 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 166, 191, 226);
+      color42 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 166, 229, 166);  
+      color52 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 255, 219, 166);
+    }
+  }  
+  if(NoOfSwatches >= 3) {
     //color 3 
     color3 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*80), 160, swatchSize*40,160, 0, 71, 171);
-  }  if (NoOfSwatches >=4 ) {
+    if (rows == 2){
+      // third shade of each color
+      color13 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 255, 237, 0);
+      color23 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 255, 0, 0);
+      color33 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 0, 71, 171);
+      color43 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 0, 181, 0);
+      color53 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 255, 153, 0);
+    }
+  }  
+  if (NoOfSwatches >=4 ) {
     //color 4
     color4 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*120), 160, swatchSize*40,160, 0, 181, 0);
-  }  if (NoOfSwatches >= 5) {
+      if (rows == 2){
+      // fourth shade of each color
+      color14 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 230, 213, 0);
+      color24 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 230, 0, 0);
+      color34 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 0, 64, 154);
+      color44 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 0, 163, 0);
+      color54 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 230, 138, 0);
+    }
+  }  
+  if (NoOfSwatches >= 5) {
     //color 5
     color5 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*160), 160, swatchSize*40,160, 255, 153, 0);
+    if (rows == 2){
+      // fifth shade of each color
+      color15 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 191, 178, 0);
+      color25 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 191, 0, 0);
+      color35 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 0, 33, 128);
+      color45 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 0, 136, 0);
+      color55 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 191, 115, 0);
+    }
   }
-  
-  //color 1 shades
-  if (rows == 2){
-  //color11 = create_rect(25, 460, 90,160, 255, 252, 217);
-  //color12 = create_rect(204, 460, 90,160, 255, 249, 166);
-  //color13 = create_rect(384, 460, 90,160, 255, 237, 0);
-  //color14 = create_rect(564, 460, 90,160, 230, 213, 0);
-  //color15 = create_rect(744, 460, 90,160, 191, 178, 0);
-  }
-  
-
-  //red variations
-  //color21 = create_rect(25, 460, 90,160, 255, 217, 217);
-  //color22 = create_rect(204, 460, 90,160, 255, 166, 166);
-  //color23 = create_rect(384, 460, 90,160, 255, 0, 0);
-  //color24 = create_rect(564, 460, 90,160, 230, 0, 0);
-  //color25 = create_rect(744, 460, 90,160, 191, 0, 0);
-
-
-  // blue variations
-  //color31 = create_rect(25, 460, 90,160, 217, 227, 242);
-  //color32 = create_rect(204, 460, 90,160, 166, 191, 226);
-  //color33 = create_rect(384, 460, 90,160, 0, 71, 171);
-  //color34 = create_rect(564, 460, 90,160, 0, 64, 154);
-  //color35 = create_rect(744, 460, 90,160, 0, 33, 128);
-  
-
-  // green variations
-  //color41 = create_rect(25, 460, 90,160, 217, 244, 217);
-  //color42 = create_rect(204, 460, 90,160, 166, 229, 166);
-  //color43 = create_rect(384, 460, 90,160, 0, 181, 0);
-  //color44 = create_rect(564, 460, 90,160, 0, 163, 0);
-  //color45 = create_rect(744, 460, 90,160, 0, 136, 0);
-  
-
-  //orange variations
-  //color51 = create_rect(25, 460, 90,160, 255, 240, 217);
-  //color52 = create_rect(204, 460, 90,160, 255, 219, 166);
-  //color53 = create_rect(384, 460, 90,160, 255, 153, 0);
-  //color54 = create_rect(564, 460, 90,160, 230, 138, 0);
-  //color55 = create_rect(744, 460, 90,160, 191, 115, 0);
   
   
   //black
@@ -442,70 +445,68 @@ void update_animation(float th1, float th2, float xE, float yE){
    canvas.background(255);
    canvas.rect(edgeTopLeftX+worldWidth/1.0+10, edgeTopLeftY+worldHeight/1.0+10, 80,80);
    
- // if (s.getToolPositionY() < 4.4){
- //  int r = 255;
- //  int g = 255;
- //  int b = 255;
- //  s.h_avatar.setFill(r, g, b);
- //  canvas.fill(r, g, b);
+  if (s.getToolPositionY() < 4.4){
+   int r = 255;
+   int g = 255;
+   int b = 255;
+   s.h_avatar.setFill(r, g, b);
+   canvas.fill(r, g, b);
    
- //  baseColor = 0;
- // }
+   baseColor = 0;
+  }
   
- // // yellow
- //if((s.getToolPositionX() > 0.5 && s.getToolPositionX() < 3.0) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
- //  int r = 255;
- //  int g = 237;
- //  int b = 0;
- //  s.h_avatar.setFill(r, g, b);
- //  canvas.fill(r, g, b);
+  // color 1
+ if((s.getToolPositionX() > 0.5 && s.getToolPositionX() < 0.5+swatchSize) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
+   int r = 255;
+   int g = 237;
+   int b = 0;
+   s.h_avatar.setFill(r, g, b);
+   canvas.fill(r, g, b);
    
- //  baseColor = 1;
-   
+   baseColor = 1;
 
- //}
- //// red
- //else if ((s.getToolPositionX() > 5.0 && s.getToolPositionX() < 7.5) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
- //  int r = 255;
- //  int g = 0;
- //  int b = 0;
- //  s.h_avatar.setFill(r, g, b);
- //  canvas.fill(r, g, b);
+}
+ // color 2
+ else if ((s.getToolPositionX() > 0.5+swatchSize+distanceBetweenSwatches && s.getToolPositionX() < 0.5+2*swatchSize+distanceBetweenSwatches) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
+   int r = 255;
+   int g = 0;
+   int b = 0;
+   s.h_avatar.setFill(r, g, b);
+   canvas.fill(r, g, b);
    
- //  baseColor = 2;
+   baseColor = 2;
 
+ } 
+ // color 3 
+ else if((s.getToolPositionX() > 0.5+2*swatchSize+2*distanceBetweenSwatches && s.getToolPositionX() < 0.5+3*swatchSize+2*distanceBetweenSwatches) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
+   int r = 0;
+   int g = 71;
+   int b = 171;
+   s.h_avatar.setFill(r, g, b);
+   canvas.fill(r, g, b);
    
- //} 
- //// blue 
- //else if((s.getToolPositionX() > 9.5 && s.getToolPositionX() < 12.0) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
- //  int r = 0;
- //  int g = 71;
- //  int b = 171;
- //  s.h_avatar.setFill(r, g, b);
- //  canvas.fill(r, g, b);
+   baseColor = 3;
+ }
+ //green
+  else if((s.getToolPositionX() > 0.5+3*swatchSize+3*distanceBetweenSwatches && s.getToolPositionX() < 0.5+4*swatchSize+3*distanceBetweenSwatches) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
+   int r = 0;
+   int g = 181;
+   int b = 0;
+   s.h_avatar.setFill(r, g, b);
+   canvas.fill(r, g, b);
    
- //  baseColor = 3;
- //}
- ////green
- // else if((s.getToolPositionX() > 14.0 && s.getToolPositionX() < 16.5) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
- //  int r = 0;
- //  int g = 181;
- //  int b = 0;
- //  s.h_avatar.setFill(r, g, b);
- //  canvas.fill(r, g, b);
+   baseColor = 4;
+ }
+  //orange
+  else if((s.getToolPositionX() > 0.5+4*swatchSize+4*distanceBetweenSwatches && s.getToolPositionX() < 0.5+5*swatchSize+4*distanceBetweenSwatches) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
+   int r = 255;
+   int g = 153;
+   int b = 0;
+   s.h_avatar.setFill(r, g, b);
+   canvas.fill(r, g, b);
    
- //  baseColor = 4;
- //}
- // //orange
- // else if((s.getToolPositionX() > 18.5 && s.getToolPositionX() < 21.0) && (s.getToolPositionY() > 4.4 &&  (s.getToolPositionY() < 7.6 ))){
- //  int r = 255;
- //  int g = 153;
- //  int b = 0;
- //  s.h_avatar.setFill(r, g, b);
- //  canvas.fill(r, g, b);
-   
- //  baseColor = 5;
- //}
+   baseColor = 5;
+ }
    //black
 //else if((s.getToolPositionX() > 22.5 && s.getToolPositionX() < 24.5) && (s.getToolPositionY() > 4.7 &&  (s.getToolPositionY() < 14.6 ))){
 //   int r = 0;
@@ -520,15 +521,16 @@ void update_animation(float th1, float th2, float xE, float yE){
 // }
  
  
-// // yellow variations
+ //color 1 shades
 // if(baseColor == 1){
-//   if((s.getToolPositionX() > 0.5 && s.getToolPositionX() < 3.0) && (s.getToolPositionY() > 11.6 &&  (s.getToolPositionY() < 15.4 ))){
+//   if((s.getToolPositionX() > 0.5 && s.getToolPositionX() < 0.5+swatchSize) && (s.getToolPositionY() > 11.6 &&  (s.getToolPositionY() < 15.4 ))){
 //    int r = 255;
 //    int g = 252;
 //    int b = 217;
 //    s.h_avatar.setFill(r, g, b);
 //    canvas.fill(r, g, b);
-//   } else if((s.getToolPositionX() > 5.0 && s.getToolPositionX() < 7.5) && (s.getToolPositionY() > 11.6 &&  (s.getToolPositionY() < 15.4 ))){
+//   }
+//else if((s.getToolPositionX() > 0.5+swatchSize+distanceBetweenSwatches && s.getToolPositionX() < 0.5+2*swatchSize+distanceBetweenSwatches) && (s.getToolPositionY() > 11.6 &&  (s.getToolPositionY() < 15.4 ))){
 //    int r = 255;
 //    int g = 249;
 //    int b = 166;
@@ -712,18 +714,94 @@ void update_animation(float th1, float th2, float xE, float yE){
     if(NoOfSwatches >= 1){
     //color 1
       shape(color1);
+    
+     // first shade for each color
+     if (rows == 2){
+       if(baseColor == 1){
+          shape(color11);
+        } else if(baseColor == 2){
+         shape(color21);
+        } else if(baseColor == 3){
+         shape(color31);
+        } else if(baseColor == 4){
+         shape(color41);
+        } else if(baseColor == 5){
+         shape(color51);
+        }
+     }
+      
   }  if(NoOfSwatches >= 2) {
    //color 2
       shape(color2);
+      
+     // Second shade for each color
+     if (rows == 2){
+       if(baseColor == 1){
+          shape(color12);
+        } else if(baseColor == 2){
+         shape(color22);
+        } else if(baseColor == 3){
+         shape(color32);
+        } else if(baseColor == 4){
+         shape(color42);
+        } else if(baseColor == 5){
+         shape(color52);
+        }
+     }
   }  if(NoOfSwatches >= 3) {
     //color 3 
       shape(color3);
+      
+     // Third shade for each color
+     if (rows == 2){
+       if(baseColor == 1){
+          shape(color13);
+        } else if(baseColor == 2){
+         shape(color23);
+        } else if(baseColor == 3){
+         shape(color33);
+        } else if(baseColor == 4){
+         shape(color43);
+        } else if(baseColor == 5){
+         shape(color53);
+        }
+     }
   }  if (NoOfSwatches >=4 ) {
     //color 4
       shape(color4);
+      
+     // Fourth shade for each color
+     if (rows == 2){
+       if(baseColor == 1){
+          shape(color14);
+        } else if(baseColor == 2){
+         shape(color24);
+        } else if(baseColor == 3){
+         shape(color34);
+        } else if(baseColor == 4){
+         shape(color44);
+        } else if(baseColor == 5){
+         shape(color54);
+        }
+     }
   }  if (NoOfSwatches >= 5) {
     //color 5
      shape(color5);
+     
+    // Fifth shade for each color
+     if (rows == 2){
+       if(baseColor == 1){
+          shape(color15);
+        } else if(baseColor == 2){
+         shape(color25);
+        } else if(baseColor == 3){
+         shape(color35);
+        } else if(baseColor == 4){
+         shape(color45);
+        } else if(baseColor == 5){
+         shape(color55);
+        }
+     }
   }
 
 
