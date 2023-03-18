@@ -72,10 +72,10 @@ Board             haplyBoard;
 Device            widgetOne;
 Mechanisms        pantograph;
 
-byte              widgetOneID                         = 3;
+byte              widgetOneID                         = 5;
 int               CW                                  = 0;
 int               CCW                                 = 1;
-boolean           rendering_force                     = false;
+boolean           renderingForce                     = false;
 /* end device block definition *****************************************************************************************/
 
 
@@ -89,7 +89,14 @@ long              baseFrameRate                       = 120;
 /* elements definition *************************************************************************************************/
 
 /* Screen and world setup parameters */
+float             pixelsPerMeter                      = 4000.0;
+float             radsPerDegree                       = 0.01745;
 float             pixelsPerCentimeter                 = 40.0;
+
+
+/* end effector radius in meters */
+float             rEE                                 = 0.004;
+float             rEEContact                          = 0.006;
 
 /* generic data for a 2DOF device */
 /* joint space */
@@ -97,11 +104,15 @@ PVector           angles                              = new PVector(0, 0);
 PVector           torques                             = new PVector(0, 0);
 
 /* task space */
-PVector           pos_ee                              = new PVector(0, 0);
-PVector           f_ee                                = new PVector(0, 0); 
-PImage img;
-/* World boundaries */
+PVector           posEE                               = new PVector(0, 0);
+PVector           fEE                                 = new PVector(0, 0); 
 
+/* device graphical position */
+PVector           deviceOrigin                        = new PVector(0, 0);
+
+/* World boundaries reference */
+final int         worldPixelWidth                     = 1000;
+final int         worldPixelHeight                    = 900;
 
 FWorld            world;
 float             worldWidth                          = 25.5;  
@@ -124,10 +135,9 @@ void setup(){
   /* put setup code here, run once: */
   
   /* screen size definition */
-  size(1000, 800);
+  size(1200, 900);
   
   /* device setup */
-  img = loadImage("assets/img_colormap.gif");
   
   /**  
    * The board declaration needs to be changed depending on which USB serial port the Haply board is connected.
@@ -158,11 +168,14 @@ void setup(){
   hAPI_Fisica.setScale(pixelsPerCentimeter); 
   world               = new FWorld();
 
+  deviceOrigin.add(worldPixelWidth/2, 0);
+  
   drawGUI();
   drawColourPicker();
   /* Setup the Virtual Coupling Contact Rendering Technique */
   s                   = new HVirtualCoupling((0.75)); 
   s.h_avatar.setName("reserved");
+  s.h_avatar.setSensor(false);
   //s.h_avatar.setDensity(2); 
   s.h_avatar.setFill(255,0,0); 
   s.init(world, edgeTopLeftX+worldWidth/2, edgeTopLeftY+2); 
@@ -173,7 +186,7 @@ void setup(){
   world.setEdgesFriction(0.1);
   
   col= new Coloring();
-  canvas= createGraphics(1000,800);
+  canvas= createGraphics(1200,900);
   world.draw();
   
   colour=color(0,0,0);
@@ -190,8 +203,13 @@ void setup(){
 /* draw section ********************************************************************************************************/
 void draw(){
   /* put graphical code here, runs repeatedly at defined framerate in setup, else default at 60fps: */
-  background(255);
-  pageSelector(); 
+  
+  if(renderingForce == false){
+    background(255);
+    pageSelector(); 
+    update_animation(angles.x*radsPerDegree, angles.y*radsPerDegree, posEE.x, posEE.y);
+  }
+  
 }
 /* end draw section ****************************************************************************************************/
 void keyPressed(){
@@ -216,28 +234,29 @@ class SimulationThread implements Runnable{
   
   public void run(){
     /* put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */
-    rendering_force = true;
+    renderingForce = true;
     
     if(haplyBoard.data_available()){
       /* GET END-EFFECTOR STATE (TASK SPACE) */
       widgetOne.device_read_data();
     
       angles.set(widgetOne.get_device_angles()); 
-      pos_ee.set(widgetOne.get_device_position(angles.array()));
-      pos_ee.set(pos_ee.copy().mult(250));  
+      posEE.set(widgetOne.get_device_position(angles.array()));
+      
+      posEE.set(posEE.copy().mult(200)); 
     }
     
-    //s.setToolPosition(edgeTopLeftX+worldWidth/2-(pos_ee).x+2, edgeTopLeftY+(pos_ee).y-3); 
-    s.setToolPosition(edgeTopLeftX+worldWidth/2-(pos_ee).x+2, edgeTopLeftY+(pos_ee).y-4.5);
-    s.updateCouplingForce();
-    f_ee.set(-s.getVCforceX(), s.getVCforceY());
-    f_ee.div(20000); 
 
+    s.setToolPosition(edgeTopLeftX+worldWidth/2-(posEE).x, edgeTopLeftY+(posEE).y-4); 
+    s.updateCouplingForce();
+ 
+    fEE.set(-s.getVirtualCouplingForceX(), s.getVirtualCouplingForceY());
+    fEE.div(100000); //dynes to newtons
     
-    torques.set(widgetOne.set_device_torques(f_ee.array()));
-    widgetOne.device_write_torques();
-  
     world.step(1.0f/1000.0f);
+    //s.h_avatar.setSensor(false);
+    torques.set(widgetOne.set_device_torques(fEE.array()));
+    widgetOne.device_write_torques(); 
     
     if (s.h_avatar.isTouchingBody(paint)){
       if (page==0 && !pageChange)
@@ -260,7 +279,7 @@ class SimulationThread implements Runnable{
     }
     
 
-    rendering_force = false;
+    renderingForce = false;
   }
 }
 /* end simulation section **********************************************************************************************/
@@ -327,7 +346,7 @@ void pageSelector() {
 public void drawGUI(){
   bottom= new FBox(2, 25.5);
   bottom.setFill(0, 114, 160);
-  bottom.setPosition(24.5,12.5);
+  bottom.setPosition(29,12.5);
   bottom.setStatic(true);
   bottom.setSensor(true);
   bottom.setNoStroke();
@@ -340,7 +359,7 @@ public void drawGUI(){
   img.resize(50,0);
   paint.attachImage(img);
   paint.setFill(255,255,255);
-  paint.setPosition(24.4,10);
+  paint.setPosition(29,10);
   paint.setStatic(true);
   paint.setSensor(true);
   paint.setNoStroke();
@@ -349,7 +368,7 @@ public void drawGUI(){
   
   boundary=new FBox(0.5, 25.5);
   boundary.setNoFill();
-  boundary.setPosition(22.3,12.5);
+  boundary.setPosition(26.6,12.5);
   boundary.setStatic(true);
   boundary.setSensor(true);
   boundary.setNoStroke();
@@ -542,6 +561,25 @@ if(orientation == 'v'){
   
 }
 
+void update_animation(float th1, float th2, float xE, float yE){
+  xE = pixelsPerMeter * xE;
+  yE = pixelsPerMeter * yE;
+  
+  th1 = 3.14 - th1;
+  th2 = 3.14 - th2;
+  
+  translate(xE, yE);
+ 
+}
+
+PVector device_to_graphics(PVector deviceFrame){
+  return deviceFrame.set(-deviceFrame.x, deviceFrame.y);
+}
+
+
+PVector graphics_to_device(PVector graphicsFrame){
+  return graphicsFrame.set(-graphicsFrame.x, graphicsFrame.y);
+}
 
 
 /* end helper functions section ****************************************************************************************/
