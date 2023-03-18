@@ -21,14 +21,14 @@ import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
 
 Coloring col;
-FBox paint;
-FBox bottom;
+FBox paint, bottom, boundary;
 ArrayList<FBody> bodies;
 
-int page=0;
-int colour;
+int page=0; // page 0= canvas; page 1= colour picker
+int colour; //change this value to set colour of h_avatar in canvas
 PGraphics canvas;
 boolean            actionMode=false;
+boolean            pageChange=false;
 
 /* Variables */
 FBox              b1,b2;
@@ -173,7 +173,7 @@ void setup(){
   world.setEdgesFriction(0.1);
   
   col= new Coloring();
-  canvas= createGraphics(1000,700);
+  canvas= createGraphics(1000,800);
   world.draw();
   
   colour=color(0,0,0);
@@ -240,9 +240,25 @@ class SimulationThread implements Runnable{
     world.step(1.0f/1000.0f);
     
     if (s.h_avatar.isTouchingBody(paint)){
-      actionMode=true;
-      page=1;
+      if (page==0 && !pageChange)
+      {
+         page=1;
+         pageChange=true;
+         //print(pageChange);
+      }
+      if (page==1 && !pageChange)
+      {
+        page=0;
+        pageChange=true;
+        //print(pageChange);
+      }
     }
+    
+    if (s.h_avatar.isTouchingBody(boundary)){
+      pageChange=false;
+      //print(pageChange);
+    }
+    
 
     rendering_force = false;
   }
@@ -268,6 +284,11 @@ void page0(){
   s.h_avatar.setFill(red(colour), green(colour), blue(colour));
   col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
   image(canvas,0,0);
+  if (!pageChange){
+    PImage img=loadImage("assets/paint1.png");
+    img.resize(50,0);
+    paint.attachImage(img);
+  }
   world.draw();
   
 }
@@ -280,6 +301,11 @@ void page1(){
            b.setFill(0);
            }
       }
+  if (!pageChange){
+    PImage img=loadImage("assets/canvas.png");
+    img.resize(50,0);
+    paint.attachImage(img);
+  }
   world.draw();
 }
 
@@ -299,9 +325,9 @@ void pageSelector() {
 }
 
 public void drawGUI(){
-  bottom= new FBox(25, 2);
+  bottom= new FBox(2, 25.5);
   bottom.setFill(0, 114, 160);
-  bottom.setPosition(12.5,19);
+  bottom.setPosition(24.5,12.5);
   bottom.setStatic(true);
   bottom.setSensor(true);
   bottom.setNoStroke();
@@ -309,25 +335,28 @@ public void drawGUI(){
   world.add(bottom);
   
   
-  paint=new FBox(3.5, 1.90);
-  PImage img=loadImage("assets/paint.png");
-  img.resize(0,70);
+  paint=new FBox(2, 25.5);
+  PImage img=loadImage("assets/paint1.png");
+  img.resize(50,0);
   paint.attachImage(img);
   paint.setFill(255,255,255);
-  paint.setPosition(23,19);
+  paint.setPosition(24.4,10);
   paint.setStatic(true);
   paint.setSensor(true);
   paint.setNoStroke();
   paint.setName("reserved");
   world.add(paint);
   
+  boundary=new FBox(0.5, 25.5);
+  boundary.setNoFill();
+  boundary.setPosition(22.3,12.5);
+  boundary.setStatic(true);
+  boundary.setSensor(true);
+  boundary.setNoStroke();
+  boundary.setName("reserved");
+  world.add(boundary);
+  
   /*
-  FBox partition=new FBox(0.5, 5);
-  partition.setNoFill();
-  partition.setPosition(20.5,18);
-  partition.setStatic(true);
-  partition.setNoStroke();
-  world.add(partition);
   
   settings=new FBox(3.5, 1.90);
   PImage img1=loadImage("assets/settings.png");
