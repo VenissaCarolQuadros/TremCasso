@@ -53,9 +53,9 @@ PGraphics pickedColour;
 int baseColor;
 char  orientation='v';
 int rows= 2;
-int NoOfSwatches =3; 
-float swatchSize=2.5;
+int NoOfSwatches =5; 
 float distanceBetweenSwatches=2.5;
+float swatchSize=2.5;
 
 float bPosX, gPosX;
 float vPosX, cPosX;
@@ -136,7 +136,7 @@ void setup(){
   
   /* screen size definition */
   size(1200, 900);
-  
+  //swatchSize = ((1200)/ (distanceBetweenSwatches*NoOfSwatches))/32;
   /* device setup */
   
   /**  
@@ -148,7 +148,7 @@ void setup(){
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
    */
-  haplyBoard          = new Board(this, "COM8", 0);
+  haplyBoard          = new Board(this, Serial.list()[0], 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -392,7 +392,7 @@ public void drawGUI(){
 
 public void drawColourPicker(){
   b1                  = new FBox(0.3, 15.5);
-  b1.setPosition(edgeTopLeftX+worldWidth/1.0-25, edgeTopLeftY+worldHeight/2.0-2.8); 
+  b1.setPosition(edgeTopLeftX+worldWidth/1.0-25, edgeTopLeftY+worldHeight/2.0-0.8); 
   b1.setFill(0);
   b1.setNoStroke();
   b1.setStaticBody(true);
@@ -407,7 +407,7 @@ if(orientation == 'v'){
     // vertical walls
     bPosX = bPosX - swatchSize;
     b1                  = new FBox(0.3, 4.0);
-    b1.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-6.5); 
+    b1.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-4.5); 
     b1.setFill(0);
     b1.setNoStroke();
     b1.setStaticBody(true);
@@ -415,7 +415,7 @@ if(orientation == 'v'){
     
     bPosX = bPosX - distanceBetweenSwatches;
     b2                  = new FBox(0.3, 4.0);
-    b2.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-6.5); 
+    b2.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-4.5); 
     b2.setFill(0);
     b2.setNoStroke();
     b2.setStaticBody(true);
@@ -423,14 +423,14 @@ if(orientation == 'v'){
     
     // horizantal walls
      g1                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-    g1.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-8.4); 
+    g1.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-6.4); 
     g1.setFill(0);
     g1.setNoStroke();
     g1.setStaticBody(true);
     world.add(g1);
   
      g2                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-    g2.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-4.6); 
+    g2.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-2.6); 
     g2.setFill(0);
     g2.setNoStroke();
     g2.setStaticBody(true);
@@ -441,7 +441,7 @@ if(orientation == 'v'){
   
    
     b1                  = new FBox(0.3, 15.5);
-    b1.setPosition(edgeTopLeftX+worldWidth/1.0-25+((distanceBetweenSwatches + swatchSize)*NoOfSwatches-distanceBetweenSwatches), edgeTopLeftY+worldHeight/2.0-2.8); 
+    b1.setPosition(edgeTopLeftX+worldWidth/1.0-25+((distanceBetweenSwatches + swatchSize)*NoOfSwatches-distanceBetweenSwatches), edgeTopLeftY+worldHeight/2.0-0.8); 
     b1.setFill(0);
     b1.setNoStroke();
     b1.setStaticBody(true);
@@ -455,7 +455,7 @@ if(orientation == 'v'){
       for(int i =0; i< NoOfSwatches-1 ; i++){
         vPosX = vPosX - swatchSize;
         v1                  = new FBox(0.3, 4.0);
-        v1.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+1); 
+        v1.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+3); 
         v1.setFill(0);
         v1.setNoStroke();
         v1.setStaticBody(true);
@@ -464,21 +464,21 @@ if(orientation == 'v'){
         vPosX = vPosX -distanceBetweenSwatches;
         
         v2                  = new FBox(0.3, 4.0);
-        v2.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+1); 
+        v2.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+3); 
         v2.setFill(0);
         v2.setNoStroke();
         v2.setStaticBody(true);
         world.add(v2);
   
         c1                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-        c1.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0-0.9); 
+        c1.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+1.1); 
         c1.setFill(0);
         c1.setNoStroke();
         c1.setStaticBody(true);
         world.add(c1);
         
         c2                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-        c2.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+2.9); 
+        c2.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+4.9); 
         c2.setFill(0);
         c2.setNoStroke();
         c2.setStaticBody(true);
