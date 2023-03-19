@@ -20,6 +20,7 @@ import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
 
+Buttons paintB, nextB, prevB;
 Coloring col;
 FBox paint, bottom, boundary;
 ArrayList<FBody> bodies;
@@ -36,9 +37,10 @@ FBox              v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
 FBox              g1,g2;
 FBox              c1,c2,c3,c4,c5,c6,c7,c8,c9,c10;
 
+FBox              next, prev;
+
 
 /* graphical elements */
-PShape endEffector;
 /*
 PShape color1, color2, color3, color4, color5, color6;
 PShape color11, color12,color13,color14,color15;
@@ -53,9 +55,9 @@ PGraphics pickedColour;
 int baseColor;
 char  orientation='v';
 int rows= 2;
-int NoOfSwatches =3; 
-float swatchSize=2.5;
+int NoOfSwatches =5; 
 float distanceBetweenSwatches=2.5;
+float swatchSize=2.5;
 
 float bPosX, gPosX;
 float vPosX, cPosX;
@@ -136,7 +138,7 @@ void setup(){
   
   /* screen size definition */
   size(1200, 900);
-  
+  //swatchSize = ((1200)/ (distanceBetweenSwatches*NoOfSwatches))/32;
   /* device setup */
   
   /**  
@@ -185,6 +187,9 @@ void setup(){
   world.setEdgesRestitution(.1);
   world.setEdgesFriction(0.1);
   
+  paintB= new Buttons(1040, 1300, 'h');
+  nextB= new Buttons(750, 1000, 'v');
+  prevB= new Buttons(0, 150, 'v');
   col= new Coloring();
   canvas= createGraphics(1200,900);
   world.draw();
@@ -220,7 +225,7 @@ void keyPressed(){
       actionMode=true;
   }
   if (key=='a'){
-  page=0;
+  print(hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY()));
       
 }
 
@@ -253,8 +258,9 @@ class SimulationThread implements Runnable{
     fEE.set(-s.getVirtualCouplingForceX(), s.getVirtualCouplingForceY());
     fEE.div(100000); //dynes to newtons
     
+    forceSetter();
     world.step(1.0f/1000.0f);
-    //s.h_avatar.setSensor(false);
+    
     torques.set(widgetOne.set_device_torques(fEE.array()));
     widgetOne.device_write_torques(); 
     
@@ -278,6 +284,14 @@ class SimulationThread implements Runnable{
       //print(pageChange);
     }
     
+    if (page==1){
+      if (s.h_avatar.isTouchingBody(next)){
+      print("next");
+      }
+      if (s.h_avatar.isTouchingBody(prev)){
+      print("previous");
+      }
+    }
 
     renderingForce = false;
   }
@@ -299,6 +313,8 @@ void page0(){
            b.setNoFill();
            }
       }
+  prev.dettachImage();
+  next.dettachImage();
   Vec2 pos=hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
   s.h_avatar.setFill(red(colour), green(colour), blue(colour));
   col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
@@ -320,8 +336,16 @@ void page1(){
            b.setFill(0);
            }
       }
+  PImage img=loadImage("assets/up.png");
+  img.resize(0,90);
+  prev.attachImage(img);
+  prev.setSensor(true);
+  img=loadImage("assets/down.png");
+  img.resize(0,90);
+  next.attachImage(img);
+  next.setSensor(true);
   if (!pageChange){
-    PImage img=loadImage("assets/canvas.png");
+    img=loadImage("assets/canvas.png");
     img.resize(50,0);
     paint.attachImage(img);
   }
@@ -368,7 +392,7 @@ public void drawGUI(){
   
   boundary=new FBox(0.5, 25.5);
   boundary.setNoFill();
-  boundary.setPosition(26.6,12.5);
+  boundary.setPosition(26.9,12.5);
   boundary.setStatic(true);
   boundary.setSensor(true);
   boundary.setNoStroke();
@@ -392,7 +416,7 @@ public void drawGUI(){
 
 public void drawColourPicker(){
   b1                  = new FBox(0.3, 15.5);
-  b1.setPosition(edgeTopLeftX+worldWidth/1.0-25, edgeTopLeftY+worldHeight/2.0-2.8); 
+  b1.setPosition(edgeTopLeftX+worldWidth/1.0-25, edgeTopLeftY+worldHeight/2.0-0.8); 
   b1.setFill(0);
   b1.setNoStroke();
   b1.setStaticBody(true);
@@ -407,7 +431,7 @@ if(orientation == 'v'){
     // vertical walls
     bPosX = bPosX - swatchSize;
     b1                  = new FBox(0.3, 4.0);
-    b1.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-6.5); 
+    b1.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-4.5); 
     b1.setFill(0);
     b1.setNoStroke();
     b1.setStaticBody(true);
@@ -415,7 +439,7 @@ if(orientation == 'v'){
     
     bPosX = bPosX - distanceBetweenSwatches;
     b2                  = new FBox(0.3, 4.0);
-    b2.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-6.5); 
+    b2.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-4.5); 
     b2.setFill(0);
     b2.setNoStroke();
     b2.setStaticBody(true);
@@ -423,14 +447,14 @@ if(orientation == 'v'){
     
     // horizantal walls
      g1                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-    g1.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-8.4); 
+    g1.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-6.4); 
     g1.setFill(0);
     g1.setNoStroke();
     g1.setStaticBody(true);
     world.add(g1);
   
      g2                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-    g2.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-4.6); 
+    g2.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-2.6); 
     g2.setFill(0);
     g2.setNoStroke();
     g2.setStaticBody(true);
@@ -441,7 +465,7 @@ if(orientation == 'v'){
   
    
     b1                  = new FBox(0.3, 15.5);
-    b1.setPosition(edgeTopLeftX+worldWidth/1.0-25+((distanceBetweenSwatches + swatchSize)*NoOfSwatches-distanceBetweenSwatches), edgeTopLeftY+worldHeight/2.0-2.8); 
+    b1.setPosition(edgeTopLeftX+worldWidth/1.0-25+((distanceBetweenSwatches + swatchSize)*NoOfSwatches-distanceBetweenSwatches), edgeTopLeftY+worldHeight/2.0-0.8); 
     b1.setFill(0);
     b1.setNoStroke();
     b1.setStaticBody(true);
@@ -455,7 +479,7 @@ if(orientation == 'v'){
       for(int i =0; i< NoOfSwatches-1 ; i++){
         vPosX = vPosX - swatchSize;
         v1                  = new FBox(0.3, 4.0);
-        v1.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+1); 
+        v1.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+3); 
         v1.setFill(0);
         v1.setNoStroke();
         v1.setStaticBody(true);
@@ -464,21 +488,21 @@ if(orientation == 'v'){
         vPosX = vPosX -distanceBetweenSwatches;
         
         v2                  = new FBox(0.3, 4.0);
-        v2.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+1); 
+        v2.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+3); 
         v2.setFill(0);
         v2.setNoStroke();
         v2.setStaticBody(true);
         world.add(v2);
   
         c1                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-        c1.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0-0.9); 
+        c1.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+1.1); 
         c1.setFill(0);
         c1.setNoStroke();
         c1.setStaticBody(true);
         world.add(c1);
         
         c2                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-        c2.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+2.9); 
+        c2.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+4.9); 
         c2.setFill(0);
         c2.setNoStroke();
         c2.setStaticBody(true);
@@ -488,6 +512,21 @@ if(orientation == 'v'){
       }
      
    }
+   
+    prev=new FBox(26, 2);
+    prev.setPosition(14, 2);
+    prev.setStatic(true);
+    prev.setSensor(true);
+    prev.setNoStroke();
+    world.add(prev);
+    
+    next=new FBox(26, 2);
+    next.setPosition(14, 21);
+    next.setStatic(true);
+    next.setSensor(true);
+    next.setNoStroke();
+    world.add(next);
+  
   }
  
  
@@ -570,6 +609,16 @@ void update_animation(float th1, float th2, float xE, float yE){
   
   translate(xE, yE);
  
+}
+
+public void forceSetter(){
+  Vec2 pos=hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
+  PVector f= paintB.applyForces(5, 10, pos.x, fEE);
+  if (page==1){
+    f=prevB.applyForces(5, 10, pos.y, fEE);
+    f=nextB.applyForces(-10, -20, pos.y, fEE);
+  }
+  fEE.set(f);
 }
 
 PVector device_to_graphics(PVector deviceFrame){
