@@ -25,7 +25,7 @@ Coloring col;
 FBox paint, bottom, boundary;
 ArrayList<FBody> bodies;
 
-int page=0; // page 0= canvas; page 1= colour picker
+int page = 0; // page 0 = canvas; page 1 = colour picker
 int colour; //change this value to set colour of h_avatar in canvas
 PGraphics canvas;
 boolean            actionMode=false;
@@ -34,7 +34,7 @@ boolean            pageChange=false;
 /* Variables */
 FBox              b1,b2;
 FBox              v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
-FBox              g1,g2;
+FBox              g1,g2,g3;
 FBox              c1,c2,c3,c4,c5,c6,c7,c8,c9,c10;
 
 FBox              next, prev;
@@ -52,15 +52,21 @@ PShape color51, color52,color53,color54,color55;
 
 PGraphics pickedColour;
 
-int baseColor;
-char  orientation='v';
-int rows= 2;
-int NoOfSwatches =5; 
-float distanceBetweenSwatches=2.5;
-float swatchSize=2.5;
 
-float bPosX, gPosX;
-float vPosX, cPosX;
+//float bPosX, gPosX;
+//float vPosX, cPosX;
+
+int         baseColor;
+char        orientation ='v';                     // 'v' or 'h' - Orientation of the color picker
+int         rows = 1;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
+float       offset = 4.5;                         // Offset from center between two hierarchy levels if rows == 2
+final int   NUM_SWATCHES = 6;                     // Number of swatches
+final float RATIO = 2;                            // Ratio of swatch width to swatch spacing
+final int   SWATCH_HEIGHT = 150;                  // Height of the rows of swatches
+final int   CP_LEFT_INDENT = 20;                  // Space between left of the screen and left edge of color picker
+final int   CP_RIGHT_INDENT = 280;                // Space between right of the screen and right edge of color picker
+color[]     colors1 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
+color[]     colors2 = new color[NUM_SWATCHES];    // Array containting the second row of colors 
 
 
 
@@ -150,7 +156,7 @@ void setup(){
    *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
    *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
    */
-  haplyBoard          = new Board(this, Serial.list()[0], 0);
+  haplyBoard          = new Board(this, Serial.list()[2], 0);
   widgetOne           = new Device(widgetOneID, haplyBoard);
   pantograph          = new Pantograph();
 
@@ -171,6 +177,11 @@ void setup(){
   world               = new FWorld();
 
   deviceOrigin.add(worldPixelWidth/2, 0);
+  
+  if (rows == 1){
+    offset = 0;
+    print(offset);
+  }
   
   drawGUI();
   drawColourPicker();
@@ -194,6 +205,9 @@ void setup(){
   canvas= createGraphics(1200,900);
   world.draw();
   
+  for (int i = 0; i<NUM_SWATCHES; i++)
+    colors2[i] = color(255, 255, 255);
+  
   colour=color(0,0,0);
   /* setup framerate speed */
   frameRate(baseFrameRate);
@@ -214,6 +228,7 @@ void draw(){
     pageSelector(); 
     update_animation(angles.x*radsPerDegree, angles.y*radsPerDegree, posEE.x, posEE.y);
   }
+  
   
 }
 /* end draw section ****************************************************************************************************/
@@ -311,6 +326,7 @@ void page0(){
            if(b.getName()!="reserved"){
            b.setSensor(true);
            b.setNoFill();
+           b.setNoStroke();
            }
       }
   prev.dettachImage();
@@ -331,11 +347,18 @@ void page1(){
   bodies=world.getBodies();
   //print(bodies);
   for (FBody b : bodies) { 
-           if(b.getName()!="reserved"){
-           b.setSensor(false);
-           b.setFill(0);
-           }
+    if(b.getName()!="reserved"){
+      if(b.getName() == "swatchSpacer"){
+        b.setSensor(false);
+        b.setFillColor(color(255,255,255));
+        b.setStrokeWeight(12);
+        b.setStrokeColor(color(0,0,0));
+      }else{
+        b.setSensor(false);
+        b.setFill(0);
       }
+    }
+  }
   PImage img=loadImage("assets/up.png");
   img.resize(0,90);
   prev.attachImage(img);
@@ -349,6 +372,25 @@ void page1(){
     img.resize(50,0);
     paint.attachImage(img);
   }
+  // Color in the swatches
+  drawSwatches();
+  
+  // Check if the end effector is over the color swatches, and if so, update selected color
+  if(s.h_avatar.getX()*pixelsPerCentimeter > CP_LEFT_INDENT 
+    && s.h_avatar.getX()*pixelsPerCentimeter < width-CP_RIGHT_INDENT
+    && s.h_avatar.getY()*pixelsPerCentimeter > height/2-offset*pixelsPerCentimeter-SWATCH_HEIGHT/2 + 10
+    && s.h_avatar.getY()*pixelsPerCentimeter < height/2-offset*pixelsPerCentimeter-SWATCH_HEIGHT/2 + 10 + SWATCH_HEIGHT){
+      
+      colour = color(get((int)(s.h_avatar.getX()*pixelsPerCentimeter), (int)(s.h_avatar.getY()*pixelsPerCentimeter)));
+      if(rows == 2)
+        colors2 = getShades(colour);
+    }else if (s.h_avatar.getX()*pixelsPerCentimeter > CP_LEFT_INDENT 
+    && s.h_avatar.getX()*pixelsPerCentimeter < width-CP_RIGHT_INDENT
+    && s.h_avatar.getY()*pixelsPerCentimeter > height/2+offset*pixelsPerCentimeter-SWATCH_HEIGHT/2 + 10
+    && s.h_avatar.getY()*pixelsPerCentimeter < height/2+offset*pixelsPerCentimeter-SWATCH_HEIGHT/2 + 10 + SWATCH_HEIGHT){
+      colour = color(get((int)(s.h_avatar.getX()*pixelsPerCentimeter), (int)(s.h_avatar.getY()*pixelsPerCentimeter)));
+    }
+  s.h_avatar.setFill(red(colour), green(colour), blue(colour));
   world.draw();
 }
 
@@ -414,190 +456,155 @@ public void drawGUI(){
   */
 }
 
+/**
+* This method draws the color swatches in the color picker.
+*/
+public void drawSwatches(){
+  colors1 = getColors();  // Getting NUM_SWATCHES colors equally spaced out on the color wheel
+  // Calculating the width of a swatch and of a space between the swatches based on the width of the color picker and the ratio of swatch width to space width
+  float widthOfSwatch = (width-CP_LEFT_INDENT-CP_RIGHT_INDENT-1)/(NUM_SWATCHES + 1/RATIO*(NUM_SWATCHES-1));
+  float widthOfSpace = 1/RATIO*widthOfSwatch;
+  noStroke();
+  // color the first row
+  for (int i = 0; i<NUM_SWATCHES; i++){
+    fill(colors1[i]);
+    rect(CP_LEFT_INDENT + i*(widthOfSwatch + widthOfSpace), height/2-offset*pixelsPerCentimeter-SWATCH_HEIGHT/2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+  }
+  
+  if(rows == 2){
+    // color the second row
+    for (int i = 0; i<NUM_SWATCHES; i++){
+      fill(colors2[i]);
+      rect(CP_LEFT_INDENT + i*(widthOfSwatch + widthOfSpace), height/2+offset*pixelsPerCentimeter - SWATCH_HEIGHT/2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+    }
+  }
+}
+
+/**
+* When the method is called, it returns an array of colors of length NoOfSwatches.
+*/
+color[] getColors(){
+  color[] colors = new color[NUM_SWATCHES];              // Makes a new array of length NUM_SWATCHES 
+  colorMode(HSB, 360, 100, 100);                         // Change color mode to HSB to make it easier to choose colors
+  for (int i = 0; i<NUM_SWATCHES; i++){                  // Compute the new color and store it in each array space
+    colors[i] = color((360/NUM_SWATCHES)*i, 100, 100);
+  }
+  colorMode(RGB, 255, 255, 255);                         // Return to RGB color mode
+  return colors;
+}
+
+/**
+* When the method is called with parameters r, g, and b, it returns 
+* an array of hues based on the given color of length NoOfSwatches.
+*/
+color[] getShades(int r, int g, int b){
+  color[] colors = new color[NUM_SWATCHES];              // Makes a new array of length NUM_SWATCHES 
+  color baseColor = color(r, g, b);                      // Store the base color in a color object type
+  colorMode(HSB, 360, 100, 100);                         // Change color mode to HSB to make it easier to choose colors
+  for (int i = 0; i<NUM_SWATCHES; i++){                  // Create desired number of shades based on the color
+    colors[i] = color(hue(baseColor), 100, i*100/(NUM_SWATCHES-1));
+  }
+  colorMode(RGB, 255, 255, 255);                         // Return to RGB color mode
+  return colors;
+}
+
+/**
+* When the method is called with a color parameter, it returns an 
+* array of hues based on the given color of length NoOfSwatches.
+*/
+color[] getShades(color baseColor){
+  color[] colors = new color[NUM_SWATCHES];              // Makes a new array of length NUM_SWATCHES 
+  colorMode(HSB, 360, 100, 100);                         // Change color mode to HSB to make it easier to choose colors
+  for (int i = 0; i<NUM_SWATCHES; i++){                  // Create desired number of shades based on the color
+    colors[i] = color(hue(baseColor), 100, i*100/(NUM_SWATCHES-1));
+  }
+  colorMode(RGB, 255, 255, 255);                         // Return to RGB color mode
+  return colors;
+}
+
+/**
+* Draws a linear gradient at desired (x,y) location with width w and height h from color c1 to color c2. 
+*/
+void drawGradient(int x, int y, float w, float h, color c1, color c2){
+  noFill();                                        // Set to not fill in
+  colorMode(HSB, 360, 100, 100);                   // Change color mode to HSB to make it easier to choose colors
+  float step = (hue(c2) - hue(c1)) / w ;           // Compute the size of the step from one color swatch to the next based on the number of desired swatches
+  for (int i = 0; i <= w; i++) {                   
+    color c = color(hue(c1)+step*i, 100, 100);     // Create the new color
+    stroke(c);                                     // Set the new color as the active color
+    line(x+i, y, x+i, y+h);                        // Draw a line of the chosen color at the adequate location
+  }
+}
+
+
 public void drawColourPicker(){
-  b1                  = new FBox(0.3, 15.5);
-  b1.setPosition(edgeTopLeftX+worldWidth/1.0-25, edgeTopLeftY+worldHeight/2.0-0.8); 
+  
+  // Computing the width of a color swatch and the width of the space between swatches
+  float widthOfSwatch = (width-CP_LEFT_INDENT-CP_RIGHT_INDENT-1)/(NUM_SWATCHES + 1/RATIO*(NUM_SWATCHES-1));
+  float widthOfSpace = 1/RATIO*widthOfSwatch;
+  float ppcm = pixelsPerCentimeter;  // shortcut for pixelsPerCentimeter to make for shorter functions
+  
+  // Draw left edge
+  b1 = new FBox(0.3, 15.5);
+  b1.setPosition(CP_LEFT_INDENT/pixelsPerCentimeter, edgeTopLeftY+worldHeight/2.0-0.8); 
   b1.setFill(0);
   b1.setNoStroke();
   b1.setStaticBody(true);
   world.add(b1);
   
-// Walls  
-if(orientation == 'v'){
-    bPosX = 25 ;
-    gPosX = 25 - (swatchSize +(distanceBetweenSwatches/2)) ;
+  // IF orientation is vertical:
+  if(orientation == 'v'){
+    print(offset);
+    // Create N-1 separations between each swatch. FBoxes with white color fill and black stroke of weight 12.
+    for(int i=0; i<NUM_SWATCHES-1; i++){
+      g3 = new FBox(widthOfSpace/ppcm, (SWATCH_HEIGHT + 10)/ppcm);
+      //g3.setPosition((CP_LEFT_INDENT+(i+1)*(widthOfSwatch+widthOfSpace)-widthOfSpace/2)/ppcm, edgeTopLeftY+worldHeight/2.0-offset); 
+      g3.setPosition((CP_LEFT_INDENT+(i+1)*(widthOfSwatch+widthOfSpace)-widthOfSpace/2)/ppcm, worldHeight/2.0 - offset - 1);
+      g3.setFillColor(color(255,255,255));
+      g3.setStrokeWeight(12);
+      g3.setStrokeColor(color(0,0,0));
+      g3.setStaticBody(true);
+      g3.setName("swatchSpacer");
+      world.add(g3);
+    }
     
-   for(int i =0; i< NoOfSwatches-1 ; i++){
-    // vertical walls
-    bPosX = bPosX - swatchSize;
-    b1                  = new FBox(0.3, 4.0);
-    b1.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-4.5); 
-    b1.setFill(0);
-    b1.setNoStroke();
-    b1.setStaticBody(true);
-    world.add(b1);
-    
-    bPosX = bPosX - distanceBetweenSwatches;
-    b2                  = new FBox(0.3, 4.0);
-    b2.setPosition(edgeTopLeftX+worldWidth/1.0-bPosX, edgeTopLeftY+worldHeight/2.0-4.5); 
-    b2.setFill(0);
-    b2.setNoStroke();
-    b2.setStaticBody(true);
-    world.add(b2);
-    
-    // horizantal walls
-     g1                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-    g1.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-6.4); 
-    g1.setFill(0);
-    g1.setNoStroke();
-    g1.setStaticBody(true);
-    world.add(g1);
-  
-     g2                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-    g2.setPosition(edgeTopLeftX+worldWidth/1.0-gPosX, edgeTopLeftY+worldHeight/2.0-2.6); 
-    g2.setFill(0);
-    g2.setNoStroke();
-    g2.setStaticBody(true);
-    world.add(g2);
-    
-    gPosX = gPosX - (distanceBetweenSwatches + swatchSize);
-   }
-  
-   
-    b1                  = new FBox(0.3, 15.5);
-    b1.setPosition(edgeTopLeftX+worldWidth/1.0-25+((distanceBetweenSwatches + swatchSize)*NoOfSwatches-distanceBetweenSwatches), edgeTopLeftY+worldHeight/2.0-0.8); 
+    // Draw Right edge
+    b1 = new FBox(0.3, 15.5);
+    b1.setPosition((width-CP_RIGHT_INDENT)/ppcm, edgeTopLeftY+worldHeight/2.0-0.8); 
     b1.setFill(0);
     b1.setNoStroke();
     b1.setStaticBody(true);
     world.add(b1);
    
-   // shades
+   // Second Row of swatches
     if (rows == 2){
-      vPosX = 25;
-      cPosX = 25 - (swatchSize +(distanceBetweenSwatches/2));
-      
-      for(int i =0; i< NoOfSwatches-1 ; i++){
-        vPosX = vPosX - swatchSize;
-        v1                  = new FBox(0.3, 4.0);
-        v1.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+3); 
-        v1.setFill(0);
-        v1.setNoStroke();
-        v1.setStaticBody(true);
-        world.add(v1);
-        
-        vPosX = vPosX -distanceBetweenSwatches;
-        
-        v2                  = new FBox(0.3, 4.0);
-        v2.setPosition(edgeTopLeftX+worldWidth/1.0-vPosX, edgeTopLeftY+worldHeight/2.0+3); 
-        v2.setFill(0);
-        v2.setNoStroke();
-        v2.setStaticBody(true);
-        world.add(v2);
-  
-        c1                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-        c1.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+1.1); 
-        c1.setFill(0);
-        c1.setNoStroke();
-        c1.setStaticBody(true);
-        world.add(c1);
-        
-        c2                  = new FBox(distanceBetweenSwatches+0.3, 0.3);
-        c2.setPosition(edgeTopLeftX+worldWidth/1.0-cPosX, edgeTopLeftY+worldHeight/2.0+4.9); 
-        c2.setFill(0);
-        c2.setNoStroke();
-        c2.setStaticBody(true);
-        world.add(c2);
-        
-        cPosX = cPosX - (distanceBetweenSwatches + swatchSize);;
-      }
-     
+      for(int i=0; i<NUM_SWATCHES-1; i++){
+        g3 = new FBox(widthOfSpace/ppcm, (SWATCH_HEIGHT + 10)/ppcm);
+        g3.setPosition((CP_LEFT_INDENT+(i+1)*(widthOfSwatch+widthOfSpace)-widthOfSpace/2)/ppcm, worldHeight/2.0 + offset - 1); 
+        g3.setFillColor(color(255,255,255));
+        g3.setStrokeWeight(12);
+        g3.setStrokeColor(color(0,0,0));
+        g3.setStaticBody(true);
+        g3.setName("swatchSpacer");
+        world.add(g3);
+      }     
    }
    
-    prev=new FBox(26, 2);
+    prev = new FBox(26, 2);
     prev.setPosition(14, 2);
     prev.setStatic(true);
     prev.setSensor(true);
     prev.setNoStroke();
     world.add(prev);
     
-    next=new FBox(26, 2);
+    next = new FBox(26, 2);
     next.setPosition(14, 21);
     next.setStatic(true);
     next.setSensor(true);
     next.setNoStroke();
     world.add(next);
-  
-  }
- 
- 
- 
- // Colors, what is the range of colors ???
-
-  //color   x,  y,  w,  h, r,  g,  b
-  /*
-  if(NoOfSwatches >= 1){
-    //color 1
-    color1 =  create_rect(25, 160, swatchSize*40,160, 255, 237, 0);
-    if (rows == 2){
-      // first shade of each color
-      color11 = create_rect(25, 460, swatchSize*40,160, 255, 252, 217);
-      color21 = create_rect(25, 460, swatchSize*40,160, 255, 217, 217);
-      color31 = create_rect(25, 460, swatchSize*40,160, 217, 227, 242);
-      color41 = create_rect(25, 460, swatchSize*40,160, 217, 244, 217);   
-      color51 = create_rect(25, 460, swatchSize*40,160, 255, 240, 217);
-    }
-  }  
-  if(NoOfSwatches >= 2) {
-   //color 2
-    color2 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*40), 160, swatchSize*40,160, 255, 0, 0);
-    if (rows == 2){
-      // second shade of each color
-      color12 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 255, 249, 166);
-      color22 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 255, 166, 166);
-      color32 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 166, 191, 226);
-      color42 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 166, 229, 166);  
-      color52 = create_rect(25+(swatchSize+distanceBetweenSwatches)*40, 460, swatchSize*40,160, 255, 219, 166);
-    }
-  }  
-  if(NoOfSwatches >= 3) {
-    //color 3 
-    color3 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*80), 160, swatchSize*40,160, 0, 71, 171);
-    if (rows == 2){
-      // third shade of each color
-      color13 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 255, 237, 0);
-      color23 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 255, 0, 0);
-      color33 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 0, 71, 171);
-      color43 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 0, 181, 0);
-      color53 = create_rect(25+(swatchSize+distanceBetweenSwatches)*80, 460, swatchSize*40,160, 255, 153, 0);
-    }
-  }  
-  if (NoOfSwatches >=4 ) {
-    //color 4
-    color4 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*120), 160, swatchSize*40,160, 0, 181, 0);
-      if (rows == 2){
-      // fourth shade of each color
-      color14 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 230, 213, 0);
-      color24 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 230, 0, 0);
-      color34 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 0, 64, 154);
-      color44 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 0, 163, 0);
-      color54 = create_rect(25+(swatchSize+distanceBetweenSwatches)*120, 460, swatchSize*40,160, 230, 138, 0);
-    }
-  }  
-  if (NoOfSwatches >= 5) {
-    //color 5
-    color5 =  create_rect((25+(swatchSize +distanceBetweenSwatches)*160), 160, swatchSize*40,160, 255, 153, 0);
-    if (rows == 2){
-      // fifth shade of each color
-      color15 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 191, 178, 0);
-      color25 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 191, 0, 0);
-      color35 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 0, 33, 128);
-      color45 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 0, 136, 0);
-      color55 = create_rect(25+(swatchSize+distanceBetweenSwatches)*160, 460, swatchSize*40,160, 191, 115, 0);
-    }
-  }
-  */
-  
-  
+    
+  } 
 }
 
 void update_animation(float th1, float th2, float xE, float yE){
