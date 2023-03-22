@@ -20,16 +20,17 @@ import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
 
-Buttons paintB, nextB, prevB;
+Buttons paintB, nextB;
 Coloring col;
-FBox paint, bottom, boundary;
+FBox paint, bottom, boundary, dbound;
 ArrayList<FBody> bodies;
 
 int page = 0; // page 0 = canvas; page 1 = colour picker
 int colour; //change this value to set colour of h_avatar in canvas
 PGraphics canvas;
 boolean            actionMode = false;
-boolean            pageChange = false;
+boolean            pageChange = false, navChange=false;
+
 
 /* Variables */
 FBox              b1,b2;
@@ -37,7 +38,7 @@ FBox              v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
 FBox              g1,g2,g3;
 FBox              c1,c2,c3,c4,c5,c6,c7,c8,c9,c10;
 
-FBox              next, prev;
+FBox              next;
 
 
 /* graphical elements */
@@ -200,8 +201,8 @@ world.setEdgesRestitution(.1);
 world.setEdgesFriction(0.1);
 
 paintB = new Buttons(1040, 1300, 'h');
-nextB = new Buttons(750, 1000, 'v');
-prevB = new Buttons(0, 150, 'v');
+nextB = new Buttons(800, 1100, 'v');
+
 col = new Coloring();
 canvas = createGraphics(1200,900);
 world.draw();
@@ -278,7 +279,9 @@ class SimulationThread implements Runnable{
         
         torques.set(widgetOne.set_device_torques(fEE.array()));
         widgetOne.device_write_torques(); 
-        
+
+        /*
+
         if (s.h_avatar.isTouchingBody(paint)) {
             if (page == 0 &&!pageChange){
                 page = 1;
@@ -290,21 +293,65 @@ class SimulationThread implements Runnable{
                 pageChange =true;
                 //print(pageChange);
             }
-        }
+
+            
+        }*/
             
         if (s.h_avatar.isTouchingBody(boundary)) {
             pageChange =false;
             //print(pageChange);
         }
+
+        /*  
+        if (s.h_avatar.isTouchingBody(next)) {
+            if (page == 1 &&!navChange){
+                page = 2; 
+                navChange =true;
+                //print(pageChange);
+            }
+            if (page == 2 &&!navChange){
+                page = 1;
+                navChange =true;
+                //print(pageChange);
+            }
             
-        if (page == 1) {
-            if (s.h_avatar.isTouchingBody(next)) {
-                print("next");
+        }*/
+        
+        if (s.h_avatar.getX()>27.95){
+              paint.setPosition(s.h_avatar.getX()+1.2, 11.25);
+              if (s.h_avatar.getX()>29.5 && !pageChange){
+                
+                if (page == 0){
+                  page = 1; 
+                }
+                else{
+                  page = 0;
+                }
+                pageChange =true;
+              }
             }
-            if (s.h_avatar.isTouchingBody(prev)) {
-                print("previous");
+        
+        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() < 27 && page!=0){
+               next.setPosition(13.5, s.h_avatar.getY()+1.2);
+               if (s.h_avatar.getY()>21 && !navChange){
+                
+                if (page == 1){
+                  page = 2; 
+                }
+                else{
+                  page = 1;
+                }
+                navChange =true;
+              }
             }
+        
+        if (s.h_avatar.isTouchingBody(dbound) && page!=0) {
+            navChange =false;
+            //print(pageChange);
         }
+        
+        
+
             
         renderingForce = false;
     }
@@ -327,15 +374,14 @@ void page0(){
             b.setNoStroke();
         }
     }
-    prev.dettachImage();
+
     next.dettachImage();
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
     image(canvas,0,0);
     if (!pageChange) {
-        PImage img =loadImage("assets/paint1.png");
-        img.resize(50,0);
+        PImage img =loadImage("assets/paint.png");
         paint.attachImage(img);
     }
     world.draw();
@@ -351,23 +397,28 @@ void page1(){
                 b.setFillColor(color(255,255,255));
                 b.setStrokeWeight(12);
                 b.setStrokeColor(color(0,0,0));
-            } else{
+            }
+            else if (b.getName()=="semireserved"){
+              b.setSensor(true);
+            }
+            else{
+
                 b.setSensor(false);
                 b.setFill(0);
             }
         }
     }
-    PImage img =loadImage("assets/up.png");
-    img.resize(0,90);
-    prev.attachImage(img);
-    prev.setSensor(true);
-    img = loadImage("assets/down.png");
-    img.resize(0,90);
-    next.attachImage(img);
-    next.setSensor(true);
+    if (page==1 && !navChange){
+      PImage img = loadImage("assets/down.png");
+      next.attachImage(img);
+    }
+    if (page==2 && !navChange){
+      PImage img = loadImage("assets/up.png");
+      next.attachImage(img);
+    }
+    //next.setSensor(true);
     if (!pageChange) {
-        img = loadImage("assets/canvas.png");
-        img.resize(50,0);
+        PImage img = loadImage("assets/canvas.png");
         paint.attachImage(img);
     }
     // Color in the swatches
@@ -404,10 +455,18 @@ void pageSelector() {
         case 1 : 
         page1();
         break;
+
+        
+        case 2:
+        page1();
+        break;
+
     }
 }
     
 public void drawGUI() {
+    /*
+
     bottom = new FBox(2, 25.5);
     bottom.setFill(0, 114, 160);
     bottom.setPosition(29,12.5);
@@ -417,13 +476,12 @@ public void drawGUI() {
     bottom.setName("reserved");
     world.add(bottom);
     
-    
-    paint = new FBox(2, 25.5);
-    PImage img =loadImage("assets/paint1.png");
-    img.resize(50,0);
+    */
+    paint = new FBox(1.75, 25.5);
+    PImage img =loadImage("assets/paint.png");
     paint.attachImage(img);
-    paint.setFill(255,255,255);
-    paint.setPosition(29,10);
+    paint.setFill(0);
+    paint.setPosition(29.2,11.25);
     paint.setStatic(true);
     paint.setSensor(true);
     paint.setNoStroke();
@@ -439,8 +497,17 @@ public void drawGUI() {
     boundary.setName("reserved");
     world.add(boundary);
     
-    /*
+
+    dbound= new FBox(26.75, 0.5);
+    dbound.setNoFill();
+    dbound.setPosition(13.5, 19.7);
+    dbound.setStatic(true);
+    dbound.setSensor(true);
+    dbound.setNoStroke();
+    dbound.setName("reserved");
+    world.add(dbound);
     
+    /*
     settings=newFBox(3.5, 1.90);
     PImage img1=loadImage("assets/settings.png");
     img1.resize(0,70);
@@ -671,18 +738,13 @@ public void drawColourPicker() {
             }     
         }
         
-        prev = new FBox(26, 2);
-        prev.setPosition(14, 2);
-        prev.setStatic(true);
-        prev.setSensor(true);
-        prev.setNoStroke();
-        world.add(prev);
         
-        next = new FBox(26, 2);
-        next.setPosition(14, 21);
+        next = new FBox(26.75, 1.75);
+        next.setPosition(13.5, 21.7);
         next.setStatic(true);
         next.setSensor(true);
         next.setNoStroke();
+        next.setName("semireserved");
         world.add(next);
         
     } 
@@ -702,9 +764,8 @@ void update_animation(float th1, float th2, float xE, float yE) {
 public void forceSetter() {
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     PVector f = paintB.applyForces(5, 10, pos.x, fEE);
-    if (page == 1) {
-        f = prevB.applyForces(5, 10, pos.y, fEE);
-        f = nextB.applyForces( -10, -20, pos.y, fEE);
+    if (page !=0) {
+        f = nextB.applyForces( -10, -30, pos.y, fEE);
     }
     fEE.set(f);
 }
