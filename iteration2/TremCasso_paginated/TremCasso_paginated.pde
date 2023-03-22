@@ -239,13 +239,6 @@ void keyPressed() {
         else
             actionMode = true;
     }
-    if (key ==  'a') {
-        print(hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY()));
-        
-    }
-    
-    
-    
 }
     
     
@@ -700,7 +693,7 @@ public void drawColourPicker() {
     
     // IF orientation is vertical:
     if (orientation == 'v') {
-        print(offset);
+        //print(offset);
         // Create N-1 separations between each swatch.FBoxes with white color fill and black stroke of weight 12.
         for (int i =0; i < NUM_SWATCHES - 1; i++) {
             g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
