@@ -182,7 +182,6 @@ deviceOrigin.add(worldPixelWidth/2, 0);
 
 if (rows == 1){
 offset = 0;
-print(offset);
 }
 
 drawGUI();
@@ -240,13 +239,6 @@ void keyPressed() {
         else
             actionMode = true;
     }
-    if (key ==  'a') {
-        print(hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY()));
-        
-    }
-    
-    
-    
 }
     
     
@@ -333,8 +325,7 @@ class SimulationThread implements Runnable{
         
         if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() < 27 && page!=0){
                next.setPosition(13.5, s.h_avatar.getY()+1.2);
-               if (s.h_avatar.getY()>21 && !navChange){
-                
+               if (s.h_avatar.getY()>22.1 && !navChange){
                 if (page == 1){
                   page = 2; 
                 }
@@ -500,7 +491,7 @@ public void drawGUI() {
 
     dbound= new FBox(26.75, 0.5);
     dbound.setNoFill();
-    dbound.setPosition(13.5, 19.7);
+    dbound.setPosition(13.5, 19.8);
     dbound.setStatic(true);
     dbound.setSensor(true);
     dbound.setNoStroke();
@@ -702,7 +693,7 @@ public void drawColourPicker() {
     
     // IF orientation is vertical:
     if (orientation == 'v') {
-        print(offset);
+        //print(offset);
         // Create N-1 separations between each swatch.FBoxes with white color fill and black stroke of weight 12.
         for (int i =0; i < NUM_SWATCHES - 1; i++) {
             g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
