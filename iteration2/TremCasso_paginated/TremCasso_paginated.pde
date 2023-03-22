@@ -31,6 +31,7 @@ PGraphics canvas;
 boolean            actionMode = false;
 boolean            pageChange = false, navChange=false;
 
+
 /* Variables */
 FBox              b1,b2;
 FBox              v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
@@ -201,6 +202,7 @@ world.setEdgesFriction(0.1);
 
 paintB = new Buttons(1040, 1300, 'h');
 nextB = new Buttons(800, 1100, 'v');
+
 col = new Coloring();
 canvas = createGraphics(1200,900);
 world.draw();
@@ -277,7 +279,9 @@ class SimulationThread implements Runnable{
         
         torques.set(widgetOne.set_device_torques(fEE.array()));
         widgetOne.device_write_torques(); 
+
         /*
+
         if (s.h_avatar.isTouchingBody(paint)) {
             if (page == 0 &&!pageChange){
                 page = 1;
@@ -289,6 +293,7 @@ class SimulationThread implements Runnable{
                 pageChange =true;
                 //print(pageChange);
             }
+
             
         }*/
             
@@ -296,6 +301,7 @@ class SimulationThread implements Runnable{
             pageChange =false;
             //print(pageChange);
         }
+
         /*  
         if (s.h_avatar.isTouchingBody(next)) {
             if (page == 1 &&!navChange){
@@ -345,6 +351,7 @@ class SimulationThread implements Runnable{
         }
         
         
+
             
         renderingForce = false;
     }
@@ -367,6 +374,7 @@ void page0(){
             b.setNoStroke();
         }
     }
+
     next.dettachImage();
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
@@ -394,6 +402,7 @@ void page1(){
               b.setSensor(true);
             }
             else{
+
                 b.setSensor(false);
                 b.setFill(0);
             }
@@ -446,15 +455,18 @@ void pageSelector() {
         case 1 : 
         page1();
         break;
+
         
         case 2:
         page1();
         break;
+
     }
 }
     
 public void drawGUI() {
     /*
+
     bottom = new FBox(2, 25.5);
     bottom.setFill(0, 114, 160);
     bottom.setPosition(29,12.5);
@@ -463,8 +475,8 @@ public void drawGUI() {
     bottom.setNoStroke();
     bottom.setName("reserved");
     world.add(bottom);
-    */
     
+    */
     paint = new FBox(1.75, 25.5);
     PImage img =loadImage("assets/paint.png");
     paint.attachImage(img);
@@ -485,6 +497,7 @@ public void drawGUI() {
     boundary.setName("reserved");
     world.add(boundary);
     
+
     dbound= new FBox(26.75, 0.5);
     dbound.setNoFill();
     dbound.setPosition(13.5, 19.7);
@@ -493,9 +506,8 @@ public void drawGUI() {
     dbound.setNoStroke();
     dbound.setName("reserved");
     world.add(dbound);
+    
     /*
-    
-    
     settings=newFBox(3.5, 1.90);
     PImage img1=loadImage("assets/settings.png");
     img1.resize(0,70);
