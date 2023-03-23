@@ -20,16 +20,17 @@ import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
 
-Buttons paintB, nextB, prevB;
+Buttons paintB, nextB;
 Coloring col;
-FBox paint, bottom, boundary;
+FBox paint, bottom, boundary, dbound;
 ArrayList<FBody> bodies;
 
 int page = 0; // page 0 = canvas; page 1 = colour picker
 int colour; //change this value to set colour of h_avatar in canvas
 PGraphics canvas;
 boolean            actionMode = false;
-boolean            pageChange = false;
+boolean            pageChange = false, navChange=false;
+
 
 /* Variables */
 FBox              b1,b2;
@@ -37,7 +38,7 @@ FBox              v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
 FBox              g1,g2,g3;
 FBox              c1,c2,c3,c4,c5,c6,c7,c8,c9,c10;
 
-FBox              next, prev;
+FBox              next;
 
 
 /* graphical elements */
@@ -59,11 +60,11 @@ PGraphics pickedColour;
 int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
 final int   rows = 2;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
-float       offset = 4.5;                         // Offset from center between two hierarchy levels if rows == 2
-final int   NUM_SWATCHES = 6;                     // Number of swatches
+float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
+final int   NUM_SWATCHES = 8;                     // Number of swatches
 final int   CP_PAGES = 2;                         // 1 or 2 - Number of pages for the color picker
 final float RATIO = 2;                            // Ratio of swatch width to swatch spacing
-final int   SWATCH_HEIGHT = 150;                  // Height of the rows of swatches
+final int   SWATCH_HEIGHT = 130;                  // Height of the rows of swatches
 final int   CP_LEFT_INDENT = 20;                  // Space between left of the screen and left edge of color picker
 final int   CP_RIGHT_INDENT = 280;                // Space between right of the screen and right edge of color picker
 color[]     colors1 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
@@ -157,7 +158,7 @@ size(1200, 900);
 *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
-haplyBoard          = new Board(this, Serial.list()[2], 0);
+haplyBoard          = new Board(this, Serial.list()[0], 0);
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -181,7 +182,6 @@ deviceOrigin.add(worldPixelWidth/2, 0);
 
 if (rows == 1){
 offset = 0;
-print(offset);
 }
 
 drawGUI();
@@ -200,8 +200,8 @@ world.setEdgesRestitution(.1);
 world.setEdgesFriction(0.1);
 
 paintB = new Buttons(1040, 1300, 'h');
-nextB = new Buttons(750, 1000, 'v');
-prevB = new Buttons(0, 150, 'v');
+nextB = new Buttons(800, 1100, 'v');
+
 col = new Coloring();
 canvas = createGraphics(1200,900);
 world.draw();
@@ -239,13 +239,6 @@ void keyPressed() {
         else
             actionMode = true;
     }
-    if (key ==  'a') {
-        print(hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY()));
-        
-    }
-    
-    
-    
 }
     
     
@@ -278,7 +271,9 @@ class SimulationThread implements Runnable{
         
         torques.set(widgetOne.set_device_torques(fEE.array()));
         widgetOne.device_write_torques(); 
-        
+
+        /*
+
         if (s.h_avatar.isTouchingBody(paint)) {
             if (page == 0 &&!pageChange){
                 page = 1;
@@ -290,21 +285,64 @@ class SimulationThread implements Runnable{
                 pageChange =true;
                 //print(pageChange);
             }
-        }
+
+            
+        }*/
             
         if (s.h_avatar.isTouchingBody(boundary)) {
             pageChange =false;
             //print(pageChange);
         }
+
+        /*  
+        if (s.h_avatar.isTouchingBody(next)) {
+            if (page == 1 &&!navChange){
+                page = 2; 
+                navChange =true;
+                //print(pageChange);
+            }
+            if (page == 2 &&!navChange){
+                page = 1;
+                navChange =true;
+                //print(pageChange);
+            }
             
-        if (page == 1) {
-            if (s.h_avatar.isTouchingBody(next)) {
-                print("next");
+        }*/
+        
+        if (s.h_avatar.getX()>27.95){
+              paint.setPosition(s.h_avatar.getX()+1.2, 11.25);
+              if (s.h_avatar.getX()>29.5 && !pageChange){
+                
+                if (page == 0){
+                  page = 1; 
+                }
+                else{
+                  page = 0;
+                }
+                pageChange =true;
+              }
             }
-            if (s.h_avatar.isTouchingBody(prev)) {
-                print("previous");
+        
+        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() < 27 && page!=0){
+               next.setPosition(13.5, s.h_avatar.getY()+1.2);
+               if (s.h_avatar.getY()>22.1 && !navChange){
+                if (page == 1){
+                  page = 2; 
+                }
+                else{
+                  page = 1;
+                }
+                navChange =true;
+              }
             }
+        
+        if (s.h_avatar.isTouchingBody(dbound) && page!=0) {
+            navChange =false;
+            //print(pageChange);
         }
+        
+        
+
             
         renderingForce = false;
     }
@@ -327,15 +365,14 @@ void page0(){
             b.setNoStroke();
         }
     }
-    prev.dettachImage();
+
     next.dettachImage();
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
     image(canvas,0,0);
     if (!pageChange) {
-        PImage img =loadImage("assets/paint1.png");
-        img.resize(50,0);
+        PImage img =loadImage("assets/paint.png");
         paint.attachImage(img);
     }
     world.draw();
@@ -351,23 +388,28 @@ void page1(){
                 b.setFillColor(color(255,255,255));
                 b.setStrokeWeight(12);
                 b.setStrokeColor(color(0,0,0));
-            } else{
+            }
+            else if (b.getName()=="semireserved"){
+              b.setSensor(true);
+            }
+            else{
+
                 b.setSensor(false);
                 b.setFill(0);
             }
         }
     }
-    PImage img =loadImage("assets/up.png");
-    img.resize(0,90);
-    prev.attachImage(img);
-    prev.setSensor(true);
-    img = loadImage("assets/down.png");
-    img.resize(0,90);
-    next.attachImage(img);
-    next.setSensor(true);
+    if (page==1 && !navChange){
+      PImage img = loadImage("assets/down.png");
+      next.attachImage(img);
+    }
+    if (page==2 && !navChange){
+      PImage img = loadImage("assets/up.png");
+      next.attachImage(img);
+    }
+    //next.setSensor(true);
     if (!pageChange) {
-        img = loadImage("assets/canvas.png");
-        img.resize(50,0);
+        PImage img = loadImage("assets/canvas.png");
         paint.attachImage(img);
     }
     // Color in the swatches
@@ -376,8 +418,8 @@ void page1(){
     // Check if the end effector is over the colorswatches, and if so, update selected color
     if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
-    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10
-    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10 + SWATCH_HEIGHT) {
+    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
+    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30 + SWATCH_HEIGHT) {
     
         colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
         if (rows == 2)
@@ -386,8 +428,66 @@ void page1(){
                 updateRow2();
     } else if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
-    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10
-    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10 + SWATCH_HEIGHT) {
+    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
+    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30 + SWATCH_HEIGHT) {
+        colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
+    }
+    s.h_avatar.setFill(red(colour), green(colour), blue(colour));
+    world.draw();
+}
+
+void page2(){
+    bodies = world.getBodies();
+    //print(bodies);
+    for (FBody b: bodies) { 
+        if (b.getName()!= "reserved") {
+            if (b.getName() == "swatchSpacer") {
+                b.setSensor(false);
+                b.setFillColor(color(255,255,255));
+                b.setStrokeWeight(12);
+                b.setStrokeColor(color(0,0,0));
+            }
+            else if (b.getName()=="semireserved"){
+              b.setSensor(true);
+            }
+            else{
+
+                b.setSensor(false);
+                b.setFill(0);
+            }
+        }
+    }
+    if (page==1 && !navChange){
+      PImage img = loadImage("assets/down.png");
+      next.attachImage(img);
+    }
+    if (page==2 && !navChange){
+      PImage img = loadImage("assets/up.png");
+      next.attachImage(img);
+    }
+    //next.setSensor(true);
+    if (!pageChange) {
+        PImage img = loadImage("assets/canvas.png");
+        paint.attachImage(img);
+    }
+    // Color in the swatches
+    drawSwatches();
+    
+    // Check if the end effector is over the colorswatches, and if so, update selected color
+    if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
+    && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
+    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
+    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30 + SWATCH_HEIGHT) {
+    
+        colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
+        if (rows == 2)
+            colors2 = getShades(colour);
+            if(CP_PAGES == 2)
+                updateRow2();
+    } else if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
+    && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
+    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
+    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30 + SWATCH_HEIGHT) {
         colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
     }
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
@@ -404,10 +504,18 @@ void pageSelector() {
         case 1 : 
         page1();
         break;
+
+        
+        case 2:
+        page2();
+        break;
+
     }
 }
     
 public void drawGUI() {
+    /*
+
     bottom = new FBox(2, 25.5);
     bottom.setFill(0, 114, 160);
     bottom.setPosition(29,12.5);
@@ -417,13 +525,12 @@ public void drawGUI() {
     bottom.setName("reserved");
     world.add(bottom);
     
-    
-    paint = new FBox(2, 25.5);
-    PImage img =loadImage("assets/paint1.png");
-    img.resize(50,0);
+    */
+    paint = new FBox(1.75, 25.5);
+    PImage img =loadImage("assets/paint.png");
     paint.attachImage(img);
-    paint.setFill(255,255,255);
-    paint.setPosition(29,10);
+    paint.setFill(0);
+    paint.setPosition(29.2,11.25);
     paint.setStatic(true);
     paint.setSensor(true);
     paint.setNoStroke();
@@ -439,8 +546,17 @@ public void drawGUI() {
     boundary.setName("reserved");
     world.add(boundary);
     
-    /*
+
+    dbound= new FBox(26.75, 0.5);
+    dbound.setNoFill();
+    dbound.setPosition(13.5, 19.8);
+    dbound.setStatic(true);
+    dbound.setSensor(true);
+    dbound.setNoStroke();
+    dbound.setName("reserved");
+    world.add(dbound);
     
+    /*
     settings=newFBox(3.5, 1.90);
     PImage img1=loadImage("assets/settings.png");
     img1.resize(0,70);
@@ -467,21 +583,21 @@ public void drawSwatches() {
         // color thefirst row
         for (int i = 0; i < NUM_SWATCHES; i++) {
             fill(colors1[i]);
-            rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+            rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
         }
         
         if (rows == 2) {
             // color the second row
             for (int i = 0; i < NUM_SWATCHES; i++) {
                 fill(colors2[i]);
-                rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+                rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
             }
         }
     }else if(CP_PAGES == 2){
         colors1 = append(colors1, colors1[0]);  // Append to the end of the colors1 array the first color
         for (int i = 0; i < NUM_SWATCHES; i++) {
             drawGradient((int)(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace)), 
-                        (int)(height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10), 
+                        (int)(height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30), 
                         widthOfSwatch, (float)SWATCH_HEIGHT, colors1[i], colors1[i+1]);
         }
         
@@ -494,7 +610,7 @@ public void drawSwatches() {
             // color the second row
             for (int i = 0; i < NUM_SWATCHES; i++) {
                 drawGradient((int)(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace)), 
-                            (int)(height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10), 
+                            (int)(height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30), 
                             widthOfSwatch, (float)SWATCH_HEIGHT, colors2[i], colors2[i+1]);
             }
 
@@ -626,7 +742,7 @@ public void drawColourPicker() {
     float ppcm =pixelsPerCentimeter;  // shortcut for pixelsPerCentimeter to make for shorter functions
     
     // Draw leftedge
-    b1 = new FBox(0.3, 15.5);
+    b1 = new FBox(0.3, 25.5);
     b1.setPosition(CP_LEFT_INDENT / pixelsPerCentimeter, edgeTopLeftY + worldHeight / 2.0 - 0.8); 
     b1.setFill(0);
     b1.setNoStroke();
@@ -635,12 +751,12 @@ public void drawColourPicker() {
     
     // IF orientation is vertical:
     if (orientation == 'v') {
-        print(offset);
+        //print(offset);
         // Create N-1 separations between each swatch.FBoxes with white color fill and black stroke of weight 12.
         for (int i =0; i < NUM_SWATCHES - 1; i++) {
             g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
             //g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, edgeTopLeftY + worldHeight / 2.0 - offset); 
-            g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 1);
+            g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 2);
             g3.setFillColor(color(255,255,255));
             g3.setStrokeWeight(12);
             g3.setStrokeColor(color(0,0,0));
@@ -650,8 +766,8 @@ public void drawColourPicker() {
         }
         
         // Draw Right edge
-        b1 = new FBox(0.3, 15.5);
-        b1.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 0.8); 
+        b1 = new FBox(0.3, 13.0);
+        b1.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 1.8); 
         b1.setFill(0);
         b1.setNoStroke();
         b1.setStaticBody(true);
@@ -661,7 +777,7 @@ public void drawColourPicker() {
         if (rows == 2) {
             for (int i =0; i < NUM_SWATCHES - 1; i++) {
                 g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
-                g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 1); 
+                g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 2); 
                 g3.setFillColor(color(255,255,255));
                 g3.setStrokeWeight(12);
                 g3.setStrokeColor(color(0,0,0));
@@ -671,18 +787,13 @@ public void drawColourPicker() {
             }     
         }
         
-        prev = new FBox(26, 2);
-        prev.setPosition(14, 2);
-        prev.setStatic(true);
-        prev.setSensor(true);
-        prev.setNoStroke();
-        world.add(prev);
         
-        next = new FBox(26, 2);
-        next.setPosition(14, 21);
+        next = new FBox(26.75, 1.75);
+        next.setPosition(13.5, 21.7);
         next.setStatic(true);
         next.setSensor(true);
         next.setNoStroke();
+        next.setName("semireserved");
         world.add(next);
         
     } 
@@ -702,9 +813,8 @@ void update_animation(float th1, float th2, float xE, float yE) {
 public void forceSetter() {
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     PVector f = paintB.applyForces(5, 10, pos.x, fEE);
-    if (page == 1) {
-        f = prevB.applyForces(5, 10, pos.y, fEE);
-        f = nextB.applyForces( -10, -20, pos.y, fEE);
+    if (page !=0) {
+        f = nextB.applyForces( -10, -30, pos.y, fEE);
     }
     fEE.set(f);
 }
