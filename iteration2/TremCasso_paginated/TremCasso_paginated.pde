@@ -158,7 +158,7 @@ size(1200, 900);
 *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
-haplyBoard          = new Board(this, Serial.list()[2], 0);
+haplyBoard          = new Board(this, Serial.list()[0], 0);
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -569,6 +569,87 @@ public void drawGUI() {
     world.add(settings);
     */
 }
+
+/**
+* This method draws the color swatches in the color picker.
+*/
+public void drawSwatches(){
+  colors1 = getColors();  // Getting NUM_SWATCHES colors equally spaced out on the color wheel
+  // Calculating the width of a swatch and of a space between the swatches based on the width of the color picker and the ratio of swatch width to space width
+  float widthOfSwatch = (width-CP_LEFT_INDENT-CP_RIGHT_INDENT-1)/(NUM_SWATCHES + 1/RATIO*(NUM_SWATCHES-1));
+  float widthOfSpace = 1/RATIO*widthOfSwatch;
+  noStroke();
+  // color the first row
+  for (int i = 0; i<NUM_SWATCHES; i++){
+    fill(colors1[i]);
+    rect(CP_LEFT_INDENT + i*(widthOfSwatch + widthOfSpace), height/2-offset*pixelsPerCentimeter-SWATCH_HEIGHT/2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+  }
+  
+  if(rows == 2){
+    // color the second row
+    for (int i = 0; i<NUM_SWATCHES; i++){
+      fill(colors2[i]);
+      rect(CP_LEFT_INDENT + i*(widthOfSwatch + widthOfSpace), height/2+offset*pixelsPerCentimeter - SWATCH_HEIGHT/2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+    }
+  }
+}
+
+/**
+* When the method is called, it returns an array of colors of length NoOfSwatches.
+*/
+color[] getColors(){
+  color[] colors = new color[NUM_SWATCHES];              // Makes a new array of length NUM_SWATCHES 
+  colorMode(HSB, 360, 100, 100);                         // Change color mode to HSB to make it easier to choose colors
+  for (int i = 0; i<NUM_SWATCHES; i++){                  // Compute the new color and store it in each array space
+    colors[i] = color((360/NUM_SWATCHES)*i, 100, 100);
+  }
+  colorMode(RGB, 255, 255, 255);                         // Return to RGB color mode
+  return colors;
+}
+
+/**
+* When the method is called with parameters r, g, and b, it returns 
+* an array of hues based on the given color of length NoOfSwatches.
+*/
+color[] getShades(int r, int g, int b){
+  color[] colors = new color[NUM_SWATCHES];              // Makes a new array of length NUM_SWATCHES 
+  color baseColor = color(r, g, b);                      // Store the base color in a color object type
+  colorMode(HSB, 360, 100, 100);                         // Change color mode to HSB to make it easier to choose colors
+  for (int i = 0; i<NUM_SWATCHES; i++){                  // Create desired number of shades based on the color
+    colors[i] = color(hue(baseColor), 100, i*100/(NUM_SWATCHES-1));
+  }
+  colorMode(RGB, 255, 255, 255);                         // Return to RGB color mode
+  return colors;
+}
+
+/**
+* When the method is called with a color parameter, it returns an 
+* array of hues based on the given color of length NoOfSwatches.
+*/
+color[] getShades(color baseColor){
+  color[] colors = new color[NUM_SWATCHES];              // Makes a new array of length NUM_SWATCHES 
+  colorMode(HSB, 360, 100, 100);                         // Change color mode to HSB to make it easier to choose colors
+  for (int i = 0; i<NUM_SWATCHES; i++){                  // Create desired number of shades based on the color
+    colors[i] = color(hue(baseColor), 100, i*100/(NUM_SWATCHES-1));
+  }
+  colorMode(RGB, 255, 255, 255);                         // Return to RGB color mode
+  return colors;
+}
+
+/**
+* Draws a linear gradient at desired (x,y) location with width w and height h from color c1 to color c2. 
+*/
+void drawGradient(int x, int y, float w, float h, color c1, color c2){
+  noFill();                                        // Set to not fill in
+  colorMode(HSB, 360, 100, 100);                   // Change color mode to HSB to make it easier to choose colors
+  float step = (hue(c2) - hue(c1)) / w ;           // Compute the size of the step from one color swatch to the next based on the number of desired swatches
+  for (int i = 0; i <= w; i++) {                   
+    color c = color(hue(c1)+step*i, 100, 100);     // Create the new color
+    stroke(c);                                     // Set the new color as the active color
+    line(x+i, y, x+i, y+h);                        // Draw a line of the chosen color at the adequate location
+  }
+}
+
 
 /**
 * This method draws the color swatches in the color picker.
