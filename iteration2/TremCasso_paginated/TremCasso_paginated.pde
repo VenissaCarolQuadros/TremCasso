@@ -60,11 +60,11 @@ PGraphics pickedColour;
 int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
 final int   rows = 2;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
-float       offset = 4.5;                         // Offset from center between two hierarchy levels if rows == 2
-final int   NUM_SWATCHES = 6;                     // Number of swatches
+float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
+final int   NUM_SWATCHES = 8;                     // Number of swatches
 final int   CP_PAGES = 2;                         // 1 or 2 - Number of pages for the color picker
 final float RATIO = 2;                            // Ratio of swatch width to swatch spacing
-final int   SWATCH_HEIGHT = 150;                  // Height of the rows of swatches
+final int   SWATCH_HEIGHT = 130;                  // Height of the rows of swatches
 final int   CP_LEFT_INDENT = 20;                  // Space between left of the screen and left edge of color picker
 final int   CP_RIGHT_INDENT = 280;                // Space between right of the screen and right edge of color picker
 color[]     colors1 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
@@ -158,7 +158,7 @@ size(1200, 900);
 *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
-haplyBoard          = new Board(this, Serial.list()[2], 0);
+haplyBoard          = new Board(this, Serial.list()[0], 0);
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -418,8 +418,8 @@ void page1(){
     // Check if the end effector is over the colorswatches, and if so, update selected color
     if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
-    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10
-    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10 + SWATCH_HEIGHT) {
+    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
+    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30 + SWATCH_HEIGHT) {
     
         colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
         if (rows == 2)
@@ -428,8 +428,8 @@ void page1(){
                 updateRow2();
     } else if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
-    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10
-    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10 + SWATCH_HEIGHT) {
+    && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
+    && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30 + SWATCH_HEIGHT) {
         colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
     }
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
@@ -525,21 +525,21 @@ public void drawSwatches() {
         // color thefirst row
         for (int i = 0; i < NUM_SWATCHES; i++) {
             fill(colors1[i]);
-            rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+            rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
         }
         
         if (rows == 2) {
             // color the second row
             for (int i = 0; i < NUM_SWATCHES; i++) {
                 fill(colors2[i]);
-                rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10, widthOfSwatch, SWATCH_HEIGHT);
+                rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
             }
         }
     }else if(CP_PAGES == 2){
         colors1 = append(colors1, colors1[0]);  // Append to the end of the colors1 array the first color
         for (int i = 0; i < NUM_SWATCHES; i++) {
             drawGradient((int)(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace)), 
-                        (int)(height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10), 
+                        (int)(height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30), 
                         widthOfSwatch, (float)SWATCH_HEIGHT, colors1[i], colors1[i+1]);
         }
         
@@ -552,7 +552,7 @@ public void drawSwatches() {
             // color the second row
             for (int i = 0; i < NUM_SWATCHES; i++) {
                 drawGradient((int)(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace)), 
-                            (int)(height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 + 10), 
+                            (int)(height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30), 
                             widthOfSwatch, (float)SWATCH_HEIGHT, colors2[i], colors2[i+1]);
             }
 
@@ -684,7 +684,7 @@ public void drawColourPicker() {
     float ppcm =pixelsPerCentimeter;  // shortcut for pixelsPerCentimeter to make for shorter functions
     
     // Draw leftedge
-    b1 = new FBox(0.3, 15.5);
+    b1 = new FBox(0.3, 25.5);
     b1.setPosition(CP_LEFT_INDENT / pixelsPerCentimeter, edgeTopLeftY + worldHeight / 2.0 - 0.8); 
     b1.setFill(0);
     b1.setNoStroke();
@@ -698,7 +698,7 @@ public void drawColourPicker() {
         for (int i =0; i < NUM_SWATCHES - 1; i++) {
             g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
             //g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, edgeTopLeftY + worldHeight / 2.0 - offset); 
-            g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 1);
+            g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 2);
             g3.setFillColor(color(255,255,255));
             g3.setStrokeWeight(12);
             g3.setStrokeColor(color(0,0,0));
@@ -708,8 +708,8 @@ public void drawColourPicker() {
         }
         
         // Draw Right edge
-        b1 = new FBox(0.3, 15.5);
-        b1.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 0.8); 
+        b1 = new FBox(0.3, 13.0);
+        b1.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 1.8); 
         b1.setFill(0);
         b1.setNoStroke();
         b1.setStaticBody(true);
@@ -719,7 +719,7 @@ public void drawColourPicker() {
         if (rows == 2) {
             for (int i =0; i < NUM_SWATCHES - 1; i++) {
                 g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
-                g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 1); 
+                g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 2); 
                 g3.setFillColor(color(255,255,255));
                 g3.setStrokeWeight(12);
                 g3.setStrokeColor(color(0,0,0));
