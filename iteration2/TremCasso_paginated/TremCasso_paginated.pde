@@ -200,7 +200,7 @@ world.setEdgesRestitution(.1);
 world.setEdgesFriction(0.1);
 
 paintB = new Buttons(1040, 1300, 1185, 'h');
-nextB = new Buttons(800, 1100, 850,'v');
+nextB = new Buttons(800, 1100, 875,'v');
 
 col = new Coloring();
 canvas = createGraphics(1200,900);
