@@ -31,6 +31,8 @@ PGraphics canvas;
 boolean            actionMode = false;
 boolean            pageChange = false, navChange=false;
 
+float[] nextPos= {11.8, 21.7};
+float[] paintPos={29.2,11.25};
 
 /* Variables */
 FBox              b1,b2;
@@ -158,7 +160,7 @@ size(1200, 900);
 *      linux:        haplyBoard = new Board(this, "/dev/ttyUSB0", 0);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
-haplyBoard          = new Board(this, Serial.list()[0], 0);
+haplyBoard          = new Board(this, "COM8", 0);
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -310,7 +312,7 @@ class SimulationThread implements Runnable{
         }*/
         
         if (s.h_avatar.getX()>27.95){
-              paint.setPosition(s.h_avatar.getX()+1.2, 11.25);
+              paint.setPosition(s.h_avatar.getX()+1.2, paintPos[1]);
               if (s.h_avatar.getX()>29.5 && !pageChange){
                 
                 if (page == 0){
@@ -323,8 +325,8 @@ class SimulationThread implements Runnable{
               }
             }
         
-        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() < 27 && page!=0){
-               next.setPosition(13.5, s.h_avatar.getY()+1.2);
+        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() <= 23 && page!=0){
+               next.setPosition(nextPos[0], s.h_avatar.getY()+1.2);
                if (s.h_avatar.getY()>22.1 && !navChange){
                 if (page == 1){
                   page = 2; 
@@ -335,6 +337,12 @@ class SimulationThread implements Runnable{
                 navChange =true;
               }
             }
+        if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > 23)){
+          next.setPosition(nextPos[0], nextPos[1]);
+        }
+        if (paint.getX() < paintPos[0] && s.h_avatar.getX()<=27.95 ){
+          paint.setPosition(paintPos[0], paintPos[1]);
+        }
         
         if (s.h_avatar.isTouchingBody(dbound) && page!=0) {
             navChange =false;
@@ -401,6 +409,7 @@ void page1(){
     }
     if (page==1 && !navChange){
       PImage img = loadImage("assets/down.png");
+      next.setFill(100, 100, 100);
       next.attachImage(img);
     }
     if (page==2 && !navChange){
@@ -472,7 +481,7 @@ public void drawGUI() {
     PImage img =loadImage("assets/paint.png");
     paint.attachImage(img);
     paint.setFill(0);
-    paint.setPosition(29.2,11.25);
+    paint.setPosition(paintPos[0], paintPos[1]);
     paint.setStatic(true);
     paint.setSensor(true);
     paint.setNoStroke();
@@ -730,11 +739,12 @@ public void drawColourPicker() {
         }
         
         
-        next = new FBox(26.75, 1.75);
-        next.setPosition(13.5, 21.7);
+        next = new FBox(22.5, 1.75);
+        next.setPosition(nextPos[0], nextPos[1]);
         next.setStatic(true);
         next.setSensor(true);
         next.setNoStroke();
+        next.setFill(100, 100, 100);
         next.setName("semireserved");
         world.add(next);
         
@@ -755,8 +765,8 @@ void update_animation(float th1, float th2, float xE, float yE) {
 public void forceSetter() {
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     PVector f = paintB.applyForces(5, 10, pos.x, fEE);
-    if (page !=0) {
-        f = nextB.applyForces( -10, -30, pos.y, fEE);
+    if (page !=0 && s.h_avatar.getX()<=23) {
+        f = nextB.applyForces( -10, -20, pos.y, fEE);
     }
     fEE.set(f);
 }
