@@ -343,7 +343,7 @@ class SimulationThread implements Runnable{
         if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > 23)){
           next.setPosition(nextPos[0], nextPos[1]);
         }
-        if (paint.getX() < paintPos[0] && s.h_avatar.getX()<=27.95 ){
+        if (paint.getX() > paintPos[0] && s.h_avatar.getX()<=27.95 ){
           paint.setPosition(paintPos[0], paintPos[1]);
         }
         
@@ -390,7 +390,7 @@ void page0(){
     
 }
 void page1(){
-    println("page 1");
+    //println("page 1");
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -455,7 +455,7 @@ void page1(){
 }
 
 void page2(){
-    println("page 2");
+    //println("page 2");
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
