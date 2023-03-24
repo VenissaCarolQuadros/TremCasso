@@ -3,13 +3,15 @@ import processing.core.*;
 public class Buttons extends PApplet{
     int buttonMin;
     int buttonMax;
+    float ratio;
     char orientation;  //force orientation
     
 
-    Buttons(int buttonMin, int buttonMax, char orientation){
+    Buttons(int buttonMin, int buttonMax, float ratio, char orientation){
         this.orientation= orientation;
         this.buttonMin= buttonMin;
         this.buttonMax= buttonMax;
+        this.ratio= ratio;
     }
 
     public PVector applyForces(float forceMin, float forceMax, float pos, PVector fEE){
