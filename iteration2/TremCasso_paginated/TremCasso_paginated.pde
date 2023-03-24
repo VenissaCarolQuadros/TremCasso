@@ -204,8 +204,8 @@ s.init(world, edgeTopLeftX + worldWidth / 2, edgeTopLeftY + 2);
 world.setEdgesRestitution(.1);
 world.setEdgesFriction(0.1);
 
-paintB = new Buttons(1040, 1300, 'h');
-nextB = new Buttons(800, 1100, 'v');
+paintB = new Buttons(1040, 1400, 0.4, 'h');
+nextB = new Buttons(800, 1100, 0.25, 'v');
 
 col = new Coloring();
 canvas = createGraphics(1200,900);
@@ -343,7 +343,7 @@ class SimulationThread implements Runnable{
         if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > 23)){
           next.setPosition(nextPos[0], nextPos[1]);
         }
-        if (paint.getX() < paintPos[0] && s.h_avatar.getX()<=27.95 ){
+        if (paint.getX() > paintPos[0] && s.h_avatar.getX()<=27.95 ){
           paint.setPosition(paintPos[0], paintPos[1]);
         }
         
@@ -390,7 +390,7 @@ void page0(){
     
 }
 void page1(){
-    println("page 1");
+    //println("page 1");
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -455,7 +455,7 @@ void page1(){
 }
 
 void page2(){
-    println("page 2");
+    //println("page 2");
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -849,7 +849,7 @@ void update_animation(float th1, float th2, float xE, float yE) {
 
 public void forceSetter() {
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
-    PVector f = paintB.applyForces(5, 10, pos.x, fEE);
+    PVector f = paintB.applyForces(5, 15, pos.x, fEE);
     if (page !=0 && s.h_avatar.getX()<=23) {
         f = nextB.applyForces( -10, -20, pos.y, fEE);
     }
