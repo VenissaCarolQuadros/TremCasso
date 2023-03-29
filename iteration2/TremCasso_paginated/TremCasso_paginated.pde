@@ -862,7 +862,7 @@ public void drawColourPicker() {
         
         
         buttonBGH = new FBox(26.75, 1.75);
-        buttonBGH.setPosition(13.5, 21.7);
+        buttonBGH.setPosition(nextPos[0], nextPos[1]);
         buttonBGH.setStatic(true);
         buttonBGH.setSensor(true);
         buttonBGH.setNoStroke();
@@ -870,7 +870,7 @@ public void drawColourPicker() {
         world.add(buttonBGH);
 
         next = new FBox(26.75, 1.75);
-        next.setPosition(13.5, 21.7);
+        next.setPosition(nextPos[0], nextPos[1]);
         next.setStatic(true);
         next.setSensor(true);
         next.setNoStroke();
