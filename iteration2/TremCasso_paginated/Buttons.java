@@ -3,13 +3,15 @@ import processing.core.*;
 public class Buttons extends PApplet{
     int buttonMin;
     int buttonMax;
+    float ratio;
     char orientation;  //force orientation
     
 
-    Buttons(int buttonMin, int buttonMax, char orientation){
+    Buttons(int buttonMin, int buttonMax, float ratio, char orientation){
         this.orientation= orientation;
         this.buttonMin= buttonMin;
         this.buttonMax= buttonMax;
+        this.ratio= ratio;
     }
 
     public PVector applyForces(float forceMin, float forceMax, float pos, PVector fEE){
@@ -18,8 +20,8 @@ public class Buttons extends PApplet{
             // System.out.println("buttonMin: " + buttonMin);
             // System.out.println("buttonMax: " + buttonMax);
             // System.out.println("pos: " + pos);
-            // System.out.println("==" + (buttonMin + 0.7*(buttonMax-buttonMin)) + "==");
-            if((int)pos < (int)(buttonMin + 0.7*(buttonMax-buttonMin))){
+            // System.out.println("==" + (buttonMin + this.ratio*(buttonMax-buttonMin)) + "==");
+            if((int)pos < (int)(buttonMin + this.ratio*(buttonMax-buttonMin))){
                 // System.out.println("NOT clicking");
                 float force = (pos-buttonMin)* increments;
                 if (orientation=='h')
