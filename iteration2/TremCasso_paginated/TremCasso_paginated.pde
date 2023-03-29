@@ -43,16 +43,6 @@ FBox              c1,c2,c3,c4,c5,c6,c7,c8,c9,c10;
 FBox              next;
 
 
-/* graphical elements */
-/*
-PShape color1, color2, color3, color4, color5, color6;
-PShape color11, color12,color13,color14,color15;
-PShape color21, color22,color23,color24,color25;
-PShape color31, color32,color33,color34,color35;
-PShape color41, color42,color43,color44,color45;
-PShape color51, color52,color53,color54,color55;
-*/
-
 PGraphics pickedColour;
 
 
@@ -61,7 +51,7 @@ PGraphics pickedColour;
 
 int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
-final int   rows = 1;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
+final int   rows = 2;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
 float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
 final int   NUM_SWATCHES = 8;                     // Number of swatches
 final int   CP_PAGES = 2;                         // 1 or 2 - Number of pages for the color picker
@@ -415,17 +405,19 @@ void page1(){
             }
         }
     }
-    if (page==1 && !navChange){
-      PImage img = loadImage("assets/hButtonBackground2.png");
-      buttonBGH.attachImage(img);      
-      img = loadImage("assets/next.png");
-      next.attachImage(img);
-    }
-    if (page==2 && !navChange){
-      PImage img = loadImage("assets/hButtonBackground2.png");
-      buttonBGH.attachImage(img);
-      img = loadImage("assets/prev.png");
-      next.attachImage(img);
+    if(CP_PAGES >=2){
+        if (page==1 && !navChange){
+        PImage img = loadImage("assets/hButtonBackground2.png");
+        buttonBGH.attachImage(img);      
+        img = loadImage("assets/next.png");
+        next.attachImage(img);
+        }
+        if (page==2 && !navChange){
+        PImage img = loadImage("assets/hButtonBackground2.png");
+        buttonBGH.attachImage(img);
+        img = loadImage("assets/prev.png");
+        next.attachImage(img);
+        }
     }
     //next.setSensor(true);
     if (!pageChange) {
@@ -483,17 +475,20 @@ void page2(){
             }
         }
     }
-    if (page==1 && !navChange){
-        PImage img = loadImage("assets/hButtonBackground2.png");
-        buttonBGH.attachImage(img);
-        img = loadImage("assets/next.png");
-        next.attachImage(img);
-    }
-    if (page==2 && !navChange){
-        PImage img = loadImage("assets/hButtonBackground2.png");
-        buttonBGH.attachImage(img);
-        img = loadImage("assets/prev.png");
-        next.attachImage(img);
+
+    if(CP_PAGES >= 2){
+        if (page==1 && !navChange){
+            PImage img = loadImage("assets/hButtonBackground2.png");
+            buttonBGH.attachImage(img);
+            img = loadImage("assets/next.png");
+            next.attachImage(img);
+        }
+        if (page==2 && !navChange){
+            PImage img = loadImage("assets/hButtonBackground2.png");
+            buttonBGH.attachImage(img);
+            img = loadImage("assets/prev.png");
+            next.attachImage(img);
+        }
     }
     //next.setSensor(true);
     if (!pageChange) {
