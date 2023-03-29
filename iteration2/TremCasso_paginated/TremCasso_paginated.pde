@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 
 Buttons paintB, nextB;
 Coloring col;
-FBox paint, bottom, boundary, dbound;
+FBox paint, bottom, boundary, dbound, buttonBG, buttonBGH;
 ArrayList<FBody> bodies;
 
 int page = 0; // page 0 = canvas; page 1 = colour picker p1, page 2 = color picker p2
@@ -59,7 +59,7 @@ PGraphics pickedColour;
 
 int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
-final int   rows = 2;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
+final int   rows = 1;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
 float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
 final int   NUM_SWATCHES = 8;                     // Number of swatches
 final int   CP_PAGES = 2;                         // 1 or 2 - Number of pages for the color picker
@@ -208,6 +208,7 @@ col = new Coloring();
 canvas = createGraphics(1200,900);
 world.draw();
 
+colorMode(RGB, 255, 255, 255);
 for (int i = 0; i<NUM_SWATCHES; i++)
     colors2[i] = color(255, 255, 255);
 
@@ -369,19 +370,22 @@ void page0(){
     }
 
     next.dettachImage();
+    buttonBGH.dettachImage();
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
     image(canvas,0,0);
     if (!pageChange) {
-        PImage img =loadImage("assets/paint.png");
+        // PImage img =loadImage("assets/paint.png");
+        PImage img2 = loadImage("assets/buttonBackground2.png");
+        buttonBG.attachImage(img2);
+        PImage img =loadImage("assets/palette2.png");
         paint.attachImage(img);
     }
     world.draw();
     
 }
 void page1(){
-    println("page 1");
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -403,16 +407,21 @@ void page1(){
         }
     }
     if (page==1 && !navChange){
-      PImage img = loadImage("assets/down.png");
+      PImage img = loadImage("assets/hButtonBackground2.png");
+      buttonBGH.attachImage(img);      
+      img = loadImage("assets/next.png");
       next.attachImage(img);
     }
     if (page==2 && !navChange){
-      PImage img = loadImage("assets/up.png");
+      PImage img = loadImage("assets/hButtonBackground2.png");
+      buttonBGH.attachImage(img);
+      img = loadImage("assets/prev.png");
       next.attachImage(img);
     }
     //next.setSensor(true);
     if (!pageChange) {
-        PImage img = loadImage("assets/canvas.png");
+        // PImage img = loadImage("assets/canvas.png");
+        PImage img = loadImage("assets/exit2.png");
         paint.attachImage(img);
     }
     // Color in the swatches
@@ -427,8 +436,8 @@ void page1(){
         colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
         if (rows == 2)
             colors2 = getShades(colour);
-            if(CP_PAGES == 2)
-                updateRow2();
+        if(CP_PAGES == 2)
+            updateRow2();
     } else if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
     && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
@@ -445,7 +454,6 @@ void page1(){
 }
 
 void page2(){
-    println("page 2");
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -467,16 +475,20 @@ void page2(){
         }
     }
     if (page==1 && !navChange){
-      PImage img = loadImage("assets/down.png");
-      next.attachImage(img);
+        PImage img = loadImage("assets/hButtonBackground2.png");
+        buttonBGH.attachImage(img);
+        img = loadImage("assets/next.png");
+        next.attachImage(img);
     }
     if (page==2 && !navChange){
-        PImage img = loadImage("assets/up.png");
+        PImage img = loadImage("assets/hButtonBackground2.png");
+        buttonBGH.attachImage(img);
+        img = loadImage("assets/prev.png");
         next.attachImage(img);
     }
     //next.setSensor(true);
     if (!pageChange) {
-        PImage img = loadImage("assets/canvas.png");
+        PImage img = loadImage("assets/exit2.png");
         paint.attachImage(img);
     }
     // Color in the swatches
@@ -533,8 +545,19 @@ public void drawGUI() {
     world.add(bottom);
     
     */
+    buttonBG = new FBox(1.75, 25.5);
+    PImage img2 = loadImage("assets/buttonBackground2.png");
+    buttonBG.attachImage(img2);
+    buttonBG.setFill(0);
+    buttonBG.setPosition(29.2,11.25);
+    buttonBG.setStatic(true);
+    buttonBG.setSensor(true);
+    buttonBG.setNoStroke();
+    buttonBG.setName("reserved");
+    world.add(buttonBG);
+
     paint = new FBox(1.75, 25.5);
-    PImage img =loadImage("assets/paint.png");
+    PImage img = loadImage("assets/palette2.png");
     paint.attachImage(img);
     paint.setFill(0);
     paint.setPosition(29.2,11.25);
@@ -543,6 +566,7 @@ public void drawGUI() {
     paint.setNoStroke();
     paint.setName("reserved");
     world.add(paint);
+
     
     boundary = new FBox(0.5, 25.5);
     boundary.setNoFill();
@@ -626,18 +650,32 @@ public void drawSwatches() {
 
             }
         }else if(page == 2){
-            // Bottom Row
-            for (int i = 0; i < NUM_SWATCHES; i++) {
-                fill(colors3[i]);
-                rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
-            }
-            
-            // Top row
-            if (rows == 2) {
+            if (rows == 2){
+                // Bottom Row
+                for (int i = 0; i < NUM_SWATCHES; i++) {
+                    fill(colors3[i]);
+                    rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
+                }
+                
+                // Top row
+                if (rows == 2) {
+                    // color the second row
+                    for (int i = 0; i < NUM_SWATCHES; i++) {
+                        fill(colors4[i]);
+                        rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
+                    }
+                }
+            }else{
+                if(colors2.length == NUM_SWATCHES){
+                    colorMode(HSB, 360, 100, 100);
+                    colors2 = append(colors2, color(0, 100, 100));
+                    colorMode(RGB, 255, 255, 255);
+                }
                 // color the second row
                 for (int i = 0; i < NUM_SWATCHES; i++) {
-                    fill(colors4[i]);
-                    rect(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace), height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30, widthOfSwatch, SWATCH_HEIGHT);
+                    drawGradient((int)(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace)), 
+                                (int)(height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30), 
+                                widthOfSwatch, (float)SWATCH_HEIGHT, colors2[i], colors2[i+1]);
                 }
             }
         }
@@ -727,7 +765,7 @@ void drawGradient(int x, int y, float w, float h, color c1, color c2) {
           selectedHue -= 360.0;
         else if (selectedHue < 0)
           selectedHue += 360.0;
-        color c = color(selectedHue, 100, 100);      // Create the new color
+        color c = color(selectedHue, saturation(c1), 100);      // Create the new color
         stroke(c);                                          // Set the new color as the active color
         line(x + i, y, x + i, y + h);                       // Draw a line of the chosen color at the adequate location
     }
@@ -814,6 +852,14 @@ public void drawColourPicker() {
         }
         
         
+        buttonBGH = new FBox(26.75, 1.75);
+        buttonBGH.setPosition(13.5, 21.7);
+        buttonBGH.setStatic(true);
+        buttonBGH.setSensor(true);
+        buttonBGH.setNoStroke();
+        buttonBGH.setName("semireserved");
+        world.add(buttonBGH);
+
         next = new FBox(26.75, 1.75);
         next.setPosition(13.5, 21.7);
         next.setStatic(true);
