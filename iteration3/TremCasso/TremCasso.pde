@@ -29,12 +29,13 @@ int page = 0; // page 0 = canvas; page 1 = colour picker p1, page 2 = color pick
 int colour; //change this value to set colour of h_avatar in canvas
 PGraphics canvas;
 boolean            actionMode = false;
-boolean            pageChange = false, navChange=false;
+boolean            pageChange = false, navChange=false, presetChange=false;
 
 float[] nextPos= {11.8, 21.7};
 float[] paintPos={29.2,11.25};
 float[] setPos={0.5,0};
 
+int preset=0;
 
 
 /* Variables */
@@ -359,13 +360,20 @@ class SimulationThread implements Runnable{
         //if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=3.5 && (page==1 || page==2)){ ((s.h_avatar.getX()-(3+setPos[0]))<=0) && ((s.h_avatar.getY()-(3+setPos[1]))<=0)
         if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=3.5 && (page==1 || page==2)){
           settings.setPosition(s.h_avatar.getX()-(cos(asin(s.h_avatar.getY()/3.15))*3.15+0.10), setPos[1]);
-          if (s.h_avatar.getX()<=(setPos[0]+1.5)){
-            print("here");
+          if ((s.h_avatar.getX()<=(setPos[0]+1.5)) && !presetChange){
+            preset++;
+            if (preset>=3)
+              preset=0;
+            presetChange=true;
           }
+        }
+        if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))>=3.55 && (page==1 || page==2)){
+          presetChange=false;
         }
         if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))>=3.5 && (page==1 || page==2)){
           settings.setPosition(setPos[0], setPos[1]);
         }
+        
         
         
         
@@ -408,6 +416,7 @@ void page0(){
 }
 void page1(){
     //println("page 1");
+    setPresets();
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -449,7 +458,6 @@ void page1(){
     }
     // Color in the swatches
     drawSwatches();
-    
     // Check if the end effector is over the colorswatches, and if so, update selected color
     if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
@@ -804,8 +812,8 @@ public void drawColourPicker() {
     float ppcm =pixelsPerCentimeter;  // shortcut for pixelsPerCentimeter to make for shorter functions
     
     // Draw leftedge
-    b1 = new FBox(0.3, 25.5);
-    b1.setPosition(CP_LEFT_INDENT / pixelsPerCentimeter, edgeTopLeftY + worldHeight / 2.0 +0.5); 
+    b1 = new FBox(0.3, 28);
+    b1.setPosition(CP_LEFT_INDENT / pixelsPerCentimeter, edgeTopLeftY + worldHeight / 2.0 ); 
     b1.setFill(0);
     b1.setNoStroke();
     b1.setStaticBody(true);
@@ -889,6 +897,14 @@ public void forceSetter() {
         f = nextB.applyForces( -10, -20, pos.y, fEE);
     }
     fEE.set(f);
+}
+
+public void setPresets(){
+  
+  textSize(100);
+  fill(153, 217, 234);
+  text((preset+1), -6, 500); 
+  
 }
 
 PVector device_to_graphics(PVector deviceFrame) {
