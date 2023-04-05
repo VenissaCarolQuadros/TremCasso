@@ -20,7 +20,7 @@ import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
 
-Buttons paintB, nextB;
+Buttons paintB, nextB, setB;
 Coloring col;
 FBox paint, bottom, boundary, dbound;
 ArrayList<FBody> bodies;
@@ -168,7 +168,7 @@ size(1200, 900);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
 
-haplyBoard          = new Board(this, Serial.list()[2], 0);
+haplyBoard          = new Board(this, "COM8", 0);
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -211,7 +211,7 @@ world.setEdgesFriction(0.1);
 
 paintB = new Buttons(1040, 1400, 0.4, 'h');
 nextB = new Buttons(800, 1100, 0.25, 'v');
-
+setB = new Buttons(0, 120, 0.6, 'n');
 col = new Coloring();
 canvas = createGraphics(1200,900);
 world.draw();
@@ -895,6 +895,9 @@ public void forceSetter() {
     PVector f = paintB.applyForces(5, 15, pos.x, fEE);
     if (page !=0 && s.h_avatar.getX()<=(nextPos[0]+11.2)) {
         f = nextB.applyForces( -10, -20, pos.y, fEE);
+    }
+    if (page!=0 && sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=4){
+      f= setB.applyForces( -3, -5, pos.x, fEE);
     }
     fEE.set(f);
 }
