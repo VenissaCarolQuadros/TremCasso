@@ -20,7 +20,7 @@ import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
 
-Buttons paintB, nextB;
+Buttons paintB, nextB, setB;
 Coloring col;
 FBox paint, bottom, boundary, dbound;
 ArrayList<FBody> bodies;
@@ -31,7 +31,7 @@ PGraphics canvas;
 boolean            actionMode = false;
 boolean            pageChange = false, navChange=false, presetChange=false;
 
-float[] nextPos= {11.8, 21.7};
+float[] nextPos= {12.3, 21.7};
 float[] paintPos={29.2,11.25};
 float[] setPos={0.5,0};
 
@@ -168,7 +168,7 @@ size(1200, 900);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
 
-haplyBoard          = new Board(this, Serial.list()[2], 0);
+haplyBoard          = new Board(this, "COM8", 0);
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -211,7 +211,7 @@ world.setEdgesFriction(0.1);
 
 paintB = new Buttons(1040, 1400, 0.4, 'h');
 nextB = new Buttons(800, 1100, 0.25, 'v');
-
+setB = new Buttons(0, 120, 0.6, 'n');
 col = new Coloring();
 canvas = createGraphics(1200,900);
 world.draw();
@@ -333,7 +333,7 @@ class SimulationThread implements Runnable{
               }
             }
         
-        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() <= 23 && page!=0){
+        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() <= (nextPos[0]+11.3) && page!=0){
                next.setPosition(nextPos[0], s.h_avatar.getY()+1.2);
                if (s.h_avatar.getY()>22.1 && !navChange){
                 if (page == 1){
@@ -345,7 +345,7 @@ class SimulationThread implements Runnable{
                 navChange =true;
               }
             }
-        if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > 23)){
+        if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > (nextPos[0]+11.3))){
           next.setPosition(nextPos[0], nextPos[1]);
         }
         if (paint.getX() > paintPos[0] && s.h_avatar.getX()<=27.95 ){
@@ -486,6 +486,7 @@ void page1(){
 
 void page2(){
     //println("page 2");
+    setPresets();
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -893,8 +894,11 @@ void update_animation(float th1, float th2, float xE, float yE) {
 public void forceSetter() {
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     PVector f = paintB.applyForces(5, 15, pos.x, fEE);
-    if (page !=0 && s.h_avatar.getX()<=(nextPos[0]+11.2)) {
+    if (page !=0 && s.h_avatar.getX()<=(nextPos[0]+11.3)) {
         f = nextB.applyForces( -10, -20, pos.y, fEE);
+    }
+    if (page!=0 && sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=4){
+      f= setB.applyForces( -3, -5, pos.x, fEE);
     }
     fEE.set(f);
 }
