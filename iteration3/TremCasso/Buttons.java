@@ -28,7 +28,7 @@ public class Buttons extends PApplet{
             //System.out.println("pos: " + pos);
             //System.out.println("==" + (buttonMin + this.ratio*(buttonMax-buttonMin)) + "==");
             if(this.multiplier*(int)pos < (int)this.multiplier*(buttonMin + this.ratio*(buttonMax-buttonMin))){
-                System.out.println("NOT clicking");
+                //System.out.println("NOT clicking");
                 float force = (pos-buttonMin)* increments;
                 if (orientation=='h'|| orientation=='n')
                     fEE.set(fEE.x+force, fEE.y);

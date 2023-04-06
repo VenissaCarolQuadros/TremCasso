@@ -31,7 +31,7 @@ PGraphics canvas;
 boolean            actionMode = false;
 boolean            pageChange = false, navChange=false, presetChange=false;
 
-float[] nextPos= {11.8, 21.7};
+float[] nextPos= {12.3, 21.7};
 float[] paintPos={29.2,11.25};
 float[] setPos={0.5,0};
 
@@ -333,7 +333,7 @@ class SimulationThread implements Runnable{
               }
             }
         
-        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() <= 23 && page!=0){
+        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() <= (nextPos[0]+11.3) && page!=0){
                next.setPosition(nextPos[0], s.h_avatar.getY()+1.2);
                if (s.h_avatar.getY()>22.1 && !navChange){
                 if (page == 1){
@@ -345,7 +345,7 @@ class SimulationThread implements Runnable{
                 navChange =true;
               }
             }
-        if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > 23)){
+        if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > (nextPos[0]+11.3))){
           next.setPosition(nextPos[0], nextPos[1]);
         }
         if (paint.getX() > paintPos[0] && s.h_avatar.getX()<=27.95 ){
@@ -486,6 +486,7 @@ void page1(){
 
 void page2(){
     //println("page 2");
+    setPresets();
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -893,7 +894,7 @@ void update_animation(float th1, float th2, float xE, float yE) {
 public void forceSetter() {
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     PVector f = paintB.applyForces(5, 15, pos.x, fEE);
-    if (page !=0 && s.h_avatar.getX()<=(nextPos[0]+11.2)) {
+    if (page !=0 && s.h_avatar.getX()<=(nextPos[0]+11.3)) {
         f = nextB.applyForces( -10, -20, pos.y, fEE);
     }
     if (page!=0 && sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=4){
