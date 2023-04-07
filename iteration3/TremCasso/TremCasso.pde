@@ -31,7 +31,9 @@ PGraphics canvas;
 boolean            actionMode = false;
 boolean            pageChange = false, navChange=false, presetChange=false;
 
-float[] nextPos= {12.3, 21.7};
+float[] nextPos= {12.35, 21.7};
+
+
 float[] paintPos={29.2,11.25};
 float[] setPos={0.5,0};
 
@@ -39,10 +41,13 @@ int preset=0;
 
 
 /* Variables */
+
+ArrayList<FBox> seperators = new ArrayList<FBox>();
+ArrayList<FBox> seperators2 = new ArrayList<FBox>();
+
 FBox              b1,b2;
-FBox              v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
-FBox              g1,g2,g3;
-FBox              c1,c2,c3,c4,c5,c6,c7,c8,c9,c10;
+FBox              a1;
+
 
 FBox              next;
 FCircle           settings;
@@ -66,14 +71,14 @@ PGraphics pickedColour;
 
 int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
-final int   rows = 2;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
-float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
-final int   NUM_SWATCHES = 8;                     // Number of swatches
-final int   CP_PAGES = 2;                         // 1 or 2 - Number of pages for the color picker
-final float RATIO = 2;                            // Ratio of swatch width to swatch spacing
+ int   rows = 1;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
+ float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
+ int   NUM_SWATCHES = 3;                     // Number of swatches
+ int   CP_PAGES = 1;                         // 1 or 2 - Number of pages for the color picker
+ float RATIO = 2;                            // Ratio of swatch width to swatch spacing
 final int   SWATCH_HEIGHT = 130;                  // Height of the rows of swatches
 final int   CP_LEFT_INDENT = 50;                  // Space between left of the screen and left edge of color picker
-final int   CP_RIGHT_INDENT = 280;                // Space between right of the screen and right edge of color picker
+ int   CP_RIGHT_INDENT = 280;                // Space between right of the screen and right edge of color picker
 color[]     colors1 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
 color[]     colors2 = new color[NUM_SWATCHES];    // Array containting the second row of colors 
 color[]     colors3 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
@@ -168,7 +173,9 @@ size(1200, 900);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
 
-haplyBoard          = new Board(this, "COM8", 0);
+
+haplyBoard          = new Board(this, Serial.list()[0], 0);
+
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -362,6 +369,88 @@ class SimulationThread implements Runnable{
           settings.setPosition(s.h_avatar.getX()-(cos(asin(s.h_avatar.getY()/3.15))*3.15+0.10), setPos[1]);
           if ((s.h_avatar.getX()<=(setPos[0]+1.5)) && !presetChange){
             preset++;
+            
+           // delete old preset from the screen 
+           for (int i =0; i < NUM_SWATCHES - 1; i++) {
+              world.remove(seperators.get(i));
+              }
+            if (rows == 2){
+              for (int i =0; i < NUM_SWATCHES - 1; i++) {
+              world.remove(seperators2.get(i));
+              }
+            }
+            world.remove(b1);
+            world.remove(b2);
+            world.remove(next);
+            world.remove(settings);
+            seperators.clear();
+            
+ 
+            // second preset parameters
+            if (preset == 1){
+              offset = 3.5;
+              RATIO =  2.5;
+              rows = 2;
+              NUM_SWATCHES = 5;
+              CP_PAGES = 2;
+              CP_RIGHT_INDENT = 250;
+              colors1 = expand(colors1, NUM_SWATCHES);
+              colors2 = expand(colors2, NUM_SWATCHES);
+              colors3 = expand(colors3, NUM_SWATCHES);
+              colors4 = expand(colors4, NUM_SWATCHES);
+
+               for (int i = 0; i<NUM_SWATCHES; i++)
+                   colors2[i] = color(255, 255, 255);
+            } 
+            
+            // thrid preset parameters
+            else if (preset == 2){  
+              seperators.clear();
+              seperators2.clear();
+              
+              offset = 3.5;
+              RATIO =  3.0;
+              rows = 2;
+              NUM_SWATCHES = 7;
+              CP_PAGES = 2;
+              CP_RIGHT_INDENT = 230;
+              colors1 = expand(colors1, NUM_SWATCHES+1);
+              colors2 = expand(colors2, NUM_SWATCHES+1);
+              colors3 = expand(colors3, NUM_SWATCHES+1);
+              colors4 = expand(colors4, NUM_SWATCHES+1);
+
+               for (int i = 0; i<NUM_SWATCHES; i++)
+                   colors2[i] = color(255, 255, 255);
+              
+            } 
+            
+            // default preset parameters
+            else {
+              seperators.clear();
+              seperators2.clear();
+              
+              
+              offset = 0;
+              RATIO =  2.0;
+              rows = 1;
+              NUM_SWATCHES = 3;
+              CP_PAGES = 1;
+              CP_RIGHT_INDENT = 280;
+              
+              for (int i = 0; i<NUM_SWATCHES+1; i++){
+                colors1 = shorten(colors1);
+                colors2 = shorten(colors2);
+                colors3 = shorten(colors3);
+                colors4 = shorten(colors4);
+              }
+
+               for (int i = 0; i<NUM_SWATCHES; i++)
+                   colors2[i] = color(255, 255, 255);
+            }
+             
+            background(255);
+  
+            drawColourPicker();
             if (preset>=3)
               preset=0;
             presetChange=true;
@@ -825,36 +914,39 @@ public void drawColourPicker() {
         //print(offset);
         // Create N-1 separations between each swatch.FBoxes with white color fill and black stroke of weight 12.
         for (int i =0; i < NUM_SWATCHES - 1; i++) {
-            g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
+          
+            a1 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
             //g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, edgeTopLeftY + worldHeight / 2.0 - offset); 
-            g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 2);
-            g3.setFillColor(color(255,255,255));
-            g3.setStrokeWeight(12);
-            g3.setStrokeColor(color(0,0,0));
-            g3.setStaticBody(true);
-            g3.setName("swatchSpacer");
-            world.add(g3);
+            a1.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 2);
+            a1.setFillColor(color(255,255,255));
+            a1.setStrokeWeight(12);
+            a1.setStrokeColor(color(0,0,0));
+            a1.setStaticBody(true);
+            a1.setName("swatchSpacer");
+            seperators.add(a1);
+            world.add(seperators.get(i));
         }
         
         // Draw Right edge
-        b1 = new FBox(0.3, 13.0);
-        b1.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 1.8); 
-        b1.setFill(0);
-        b1.setNoStroke();
-        b1.setStaticBody(true);
-        world.add(b1);
+        b2 = new FBox(0.3, 13.0);
+        b2.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 1.8); 
+        b2.setFill(0);
+        b2.setNoStroke();
+        b2.setStaticBody(true);
+        world.add(b2);
         
         // Second Row of swatches
         if (rows == 2) {
             for (int i =0; i < NUM_SWATCHES - 1; i++) {
-                g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
-                g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 2); 
-                g3.setFillColor(color(255,255,255));
-                g3.setStrokeWeight(12);
-                g3.setStrokeColor(color(0,0,0));
-                g3.setStaticBody(true);
-                g3.setName("swatchSpacer");
-                world.add(g3);
+                a1 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
+                a1.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 2); 
+                a1.setFillColor(color(255,255,255));
+                a1.setStrokeWeight(12);
+                a1.setStrokeColor(color(0,0,0));
+                a1.setStaticBody(true);
+                a1.setName("swatchSpacer");
+                seperators2.add(a1);
+                world.add(seperators2.get(i));
             }     
         }
         
