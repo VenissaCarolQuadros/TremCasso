@@ -53,7 +53,7 @@ int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
 final int   rows = 2;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
 float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
-final int   NUM_SWATCHES = 8;                     // Number of swatches
+final int   NUM_SWATCHES = 7;                     // Number of swatches
 final int   CP_PAGES = 2;                         // 1 or 2 - Number of pages for the color picker
 final float RATIO = 2;                            // Ratio of swatch width to swatch spacing
 final int   SWATCH_HEIGHT = 130;                  // Height of the rows of swatches
@@ -64,7 +64,12 @@ color[]     colors2 = new color[NUM_SWATCHES];    // Array containting the secon
 color[]     colors3 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
 color[]     colors4 = new color[NUM_SWATCHES];    // Array containting the second row of colors 
 
-
+int         swatchID = -1;                         // Last selected swatch (takes value 0 to NUM_SWATCHES-1)
+boolean     newSwatchSelected = false;            // True if a new swatch has been selected, false otherwise.
+int swatchWidth = 30;
+int animationSpeed = 60; //60
+float iter = 0;
+int descent = 0;
 
 /* scheduler definition ************************************************************************************************/ 
 private final ScheduledExecutorService scheduler      = Executors.newScheduledThreadPool(1);
@@ -225,6 +230,7 @@ void draw() {
         pageSelector(); 
         update_animation(angles.x*radsPerDegree, angles.y*radsPerDegree, posEE.x, posEE.y);
     }
+    
 }
 /* end draw section ****************************************************************************************************/
 
@@ -243,7 +249,7 @@ class SimulationThread implements Runnable{
     
     public void run() {
         /* put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */ 
-        renderingForce =true;
+        renderingForce = true;
         
         if (haplyBoard.data_available()) {
             /* GET END-EFFECTOR STATE (TASK SPACE) */
@@ -427,13 +433,17 @@ void page1(){
     }
     // Color in the swatches
     drawSwatches();
+    if(newSwatchSelected){
+        animateGradientExpansion();
+    }
     
     // Check if the end effector is over the colorswatches, and if so, update selected color
     if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
     && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
     && s.h_avatar.getY() * pixelsPerCentimeter < height / 2 - offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30 + SWATCH_HEIGHT) {
-    
+        
+        determineSwatchIndex();
         colour = color(get((int)(s.h_avatar.getX() * pixelsPerCentimeter),(int)(s.h_avatar.getY() * pixelsPerCentimeter)));
         if (rows == 2)
             colors2 = getShades(colour);
@@ -537,18 +547,7 @@ void pageSelector() {
 }
     
 public void drawGUI() {
-    /*
 
-    bottom = new FBox(2, 25.5);
-    bottom.setFill(0, 114, 160);
-    bottom.setPosition(29,12.5);
-    bottom.setStatic(true);
-    bottom.setSensor(true);
-    bottom.setNoStroke();
-    bottom.setName("reserved");
-    world.add(bottom);
-    
-    */
     buttonBG = new FBox(1.75, 25.5);
     PImage img2 = loadImage("assets/buttonBackground2.png");
     buttonBG.attachImage(img2);
@@ -571,7 +570,6 @@ public void drawGUI() {
     paint.setName("reserved");
     world.add(paint);
 
-    
     boundary = new FBox(0.5, 25.5);
     boundary.setNoFill();
     boundary.setPosition(26.9,12.5);
@@ -581,7 +579,6 @@ public void drawGUI() {
     boundary.setName("reserved");
     world.add(boundary);
     
-
     dbound= new FBox(26.75, 0.5);
     dbound.setNoFill();
     dbound.setPosition(13.5, 19.8);
@@ -591,18 +588,6 @@ public void drawGUI() {
     dbound.setName("reserved");
     world.add(dbound);
     
-    /*
-    settings=newFBox(3.5, 1.90);
-    PImage img1=loadImage("assets/settings.png");
-    img1.resize(0,70);
-    settings.attachImage(img1);
-    settings.setFill(255,255,255);
-    settings.setPosition(18,16.5);
-    settings.setStatic(true);
-    settings.setSensor(true);
-    settings.setNoStroke();
-    world.add(settings);
-    */
 }
 
 /**
@@ -639,7 +624,7 @@ public void drawSwatches() {
                             widthOfSwatch, (float)SWATCH_HEIGHT, colors1[i], colors1[i+1]);
             }
             
-            if (rows == 2) {
+            if (rows == 2 && newSwatchSelected == false) {
                 if(colors2.length == NUM_SWATCHES){
                     colorMode(HSB, 360, 100, 100);
                     colors2 = append(colors2, color(0, 100, 100));
@@ -677,6 +662,13 @@ public void drawSwatches() {
                 }
                 // color the second row
                 for (int i = 0; i < NUM_SWATCHES; i++) {
+                    colorMode(HSB, 360, 100, 100);
+                    // print(i);
+                    // print(" | color 1: ");
+                    // print(hue(colors2[i]));
+                    // print(" | color 2: ");
+                    // println(hue(colors2[i+1]));
+                    colorMode(RGB, 255, 255, 255);
                     drawGradient((int)(CP_LEFT_INDENT + i * (widthOfSwatch + widthOfSpace)), 
                                 (int)(height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30), 
                                 widthOfSwatch, (float)SWATCH_HEIGHT, colors2[i], colors2[i+1]);
@@ -704,12 +696,12 @@ color[] getColors() {
 */
 color[] getColors(float c1, float c2) {
     color[] colors = new color[NUM_SWATCHES];              // Makes a new array of length NUM_SWATCHES 
-    float dist = c2 - c1;
+    float dist = abs(c2 - c1);
     if (dist > 180)
       dist = abs(dist-360);
     else if (dist < -180)
       dist = abs(dist+360);
-    colorMode(HSB, 360, 100, 100);                         // Change color mode to HSBto make it easier to choose colors
+    colorMode(HSB, 360, 100, 100);                          // Change color mode to HSB to make it easier to choose colors
     for (int i = 0; i < NUM_SWATCHES; i++) {                // Compute the new color and store it in each array space
         float colorHue = c1 + (dist / NUM_SWATCHES) * i;
         if(colorHue < 0)
@@ -757,7 +749,7 @@ color[] getShades(color baseColor) {
 void drawGradient(int x, int y, float w, float h, color c1, color c2) {
     noFill();   // Set to not fill in
     colorMode(HSB, 360, 100, 100);                          // Change color mode to HSB to make it easier to choose colors
-    float dist = hue(c2) - hue(c1);
+    float dist = abs(hue(c2) - hue(c1));
     if (dist > 180)
       dist = abs(dist-360);
     else if (dist < -180)
@@ -784,21 +776,74 @@ void updateRow2(){
     // Figure out which color to expand
     float closestHue = hue(colors1[0]);
     for (int i = 0; i < NUM_SWATCHES+1; i++){
+        // print(i);
+        // print(": ");
+        // print(hue(colors1[i]));
         if(abs(hue(colors1[i])-hue(colour)) < abs(closestHue-hue(colour))){
             closestHue = hue(colors1[i]);
         }
     }
+
+    float coef = (float)NUM_SWATCHES/20;
     if(closestHue > hue(colour)){
-        colors2 = getColors(closestHue - (1.5)*360/(NUM_SWATCHES), closestHue + (0.5)*360/(NUM_SWATCHES));
+        colors2 = getColors(closestHue - (coef + 1.05)*360/(NUM_SWATCHES), closestHue + (coef + 0.05)*360/(NUM_SWATCHES));
 
     }else{
-        colors2 = getColors(closestHue - (0.5)*360/(NUM_SWATCHES), closestHue + (1.5)*360/(NUM_SWATCHES));
+        colors2 = getColors(closestHue - (coef + 0.05)*360/(NUM_SWATCHES), closestHue + (coef + 1.05)*360/(NUM_SWATCHES));
     }
+    
     // extrapolate to add an extra color at the end of the array
     colorMode(HSB, 360, 100, 100);
     color newColor = color(2.0*hue(colors2[NUM_SWATCHES-1]) - hue(colors2[NUM_SWATCHES-2]), 100, 100);
     colors2 = append(colors2, newColor);
     colorMode(RGB, 255, 255, 255);                         // Return to RGB color mode
+}
+
+void determineSwatchIndex(){
+    int cpWidth = width - CP_LEFT_INDENT - CP_RIGHT_INDENT;
+    int xLoc = (int)(s.h_avatar.getX() * pixelsPerCentimeter) - CP_LEFT_INDENT;
+    int swatchIDTemp = xLoc / (cpWidth/NUM_SWATCHES);
+
+    if (swatchID != swatchIDTemp){
+        swatchID = swatchIDTemp;
+        newSwatchSelected = true;
+        // println(swatchID);
+    }
+}
+
+void animateGradientExpansion(){
+    float widthOfSwatch = (width - CP_LEFT_INDENT - CP_RIGHT_INDENT - 1) / (NUM_SWATCHES + 1 / RATIO * (NUM_SWATCHES - 1));
+    float widthOfSpace = 1 / RATIO * widthOfSwatch;
+    float cpWidth = width - CP_LEFT_INDENT - CP_RIGHT_INDENT;
+    int yValue = height/2-(int)(offset*pixelsPerCentimeter/2) - 30;
+
+    
+    int center = (int)(CP_LEFT_INDENT + swatchID * (widthOfSwatch + widthOfSpace) + widthOfSwatch/2);
+    int destinationCenter = CP_LEFT_INDENT + (int)cpWidth/2;
+    float steps = (cpWidth-animationSpeed)/(float)(animationSpeed);
+    if(swatchWidth <= cpWidth){
+        int newCenter = (int)(center + (destinationCenter - center)/(steps) * iter);
+        int xValue = newCenter - swatchWidth/2;
+        // int xValue = cpWidth/2 + CP_LEFT_INDENT - swatchWidth/2;
+
+        drawGradient(xValue, yValue, swatchWidth, offset*pixelsPerCentimeter, colors2[0], colors2[NUM_SWATCHES]);
+        // fill(0, 0, 0);
+        // rect(destinationCenter, yValue, 5, 60);
+        // rect(center, yValue, 5, 60);
+        // rect(newCenter, yValue, 5, 60);
+        swatchWidth += animationSpeed;
+        iter += 1;
+    }
+    if(swatchWidth >= cpWidth){
+        drawGradient(destinationCenter-(int)cpWidth/2, yValue+descent, cpWidth, offset*pixelsPerCentimeter, colors2[0], colors2[NUM_SWATCHES]);
+        descent += animationSpeed/3;
+        if(descent >= (int)(offset*pixelsPerCentimeter)){
+            newSwatchSelected = false;
+            swatchWidth = 30;
+            iter = 0;
+            descent = 0;
+        }
+    }
 }
 
 
@@ -807,7 +852,7 @@ public void drawColourPicker() {
     // Computingthe width of a color swatch and the width of the space between swatches
     float widthOfSwatch = (width - CP_LEFT_INDENT - CP_RIGHT_INDENT - 1) / (NUM_SWATCHES + 1 / RATIO * (NUM_SWATCHES - 1));
     float widthOfSpace = 1 / RATIO * widthOfSwatch;
-    float ppcm =pixelsPerCentimeter;  // shortcut for pixelsPerCentimeter to make for shorter functions
+    float ppcm = pixelsPerCentimeter;  // shortcut for pixelsPerCentimeter to make for shorter functions
     
     // Draw leftedge
     b1 = new FBox(0.3, 25.5);
