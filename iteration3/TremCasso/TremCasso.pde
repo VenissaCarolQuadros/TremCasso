@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 
 Buttons paintB, nextB, setB;
 Coloring col;
-FBox paint, bottom, boundary, dbound;
+FBox paint, bottom, boundary, dbound, presetBG;
 ArrayList<FBody> bodies;
 
 int page = 0; // page 0 = canvas; page 1 = colour picker p1, page 2 = color picker p2
@@ -339,6 +339,7 @@ class SimulationThread implements Runnable{
           settings.setPosition(s.h_avatar.getX()-(cos(asin(s.h_avatar.getY()/3.15))*3.15+0.10), setPos[1]);
           if ((s.h_avatar.getX()<=(setPos[0]+1.5)) && !presetChange){
             preset++;
+            page=1;
             
            // delete old preset from the screen 
            for (int i =0; i < NUM_SWATCHES - 1; i++) {
@@ -463,6 +464,7 @@ void page0(){
     next.dettachImage();
     }
     settings.dettachImage();
+    presetBG.dettachImage();
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
@@ -476,7 +478,7 @@ void page0(){
 }
 void page1(){
     //println("page 1");
-    setPresets();
+    
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -500,6 +502,8 @@ void page1(){
     
     PImage img = loadImage("assets/settings.png");
     settings.attachImage(img);
+    img=loadImage("assets/presetBackground.png");
+    presetBG.attachImage(img);
     if (!navChange && CP_PAGES>=2){
         img = loadImage("assets/down.png");
         next.attachImage(img);
@@ -535,11 +539,12 @@ void page1(){
     }
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     world.draw();
+    setPresets();
 }
 
 void page2(){
     //println("page 2");
-    setPresets();
+    
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -563,6 +568,8 @@ void page2(){
 
     PImage img = loadImage("assets/settings.png");
     settings.attachImage(img);
+    img=loadImage("assets/presetBackground.png");
+    presetBG.attachImage(img);
     if (!navChange && CP_PAGES>=2){
         img = loadImage("assets/up.png");
         next.attachImage(img);
@@ -593,6 +600,7 @@ void page2(){
     }
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     world.draw();
+    setPresets();
 }
     
     
@@ -907,12 +915,23 @@ public void drawColourPicker() {
         next.setName("semireserved");
         world.add(next);
         
+        
+        presetBG= new FBox(CP_LEFT_INDENT/ppcm, worldHeight);
+        presetBG.setPosition(CP_LEFT_INDENT/(2*ppcm), worldHeight/2-0.75);
+        presetBG.setStatic(true);
+        presetBG.setSensor(true);
+        presetBG.setNoStroke();
+        presetBG.setNoFill();
+        //presetBG.setFill(224,224,224);
+        presetBG.setName("semireserved");
+        world.add(presetBG);
+        
         settings = new FCircle(5);
         settings.setPosition(setPos[0], setPos[1]);
         settings.setStatic(true);
         settings.setSensor(true);
         settings.setNoStroke();
-        settings.setFill(153, 217, 234);
+        settings.setNoFill();
         settings.setName("semireserved");
         world.add(settings);
         
@@ -943,11 +962,18 @@ public void forceSetter() {
 }
 
 public void setPresets(){
-  
-  textSize(100);
-  fill(153, 217, 234);
-  text((preset+1), -6, 500); 
-  
+  fill(255);
+  noStroke();
+  rect( 5 , worldHeight*pixelsPerCentimeter/4, CP_LEFT_INDENT-10, worldHeight*pixelsPerCentimeter/2, 10);
+  textSize(35);
+  fill(0);
+  char[] mode={'M', 'O', 'D', 'E', ' ', Character.forDigit((preset+1), 10)};
+  float[] textPos={15, worldHeight*pixelsPerCentimeter/2-100,  30};// last value is spacing between letters
+  for (int i=0; i<mode.length; i++)
+    {
+      text(mode[i], textPos[0], textPos[1]);
+      textPos[1]+= textPos[2];
+    }
 }
 
 PVector device_to_graphics(PVector deviceFrame) {
