@@ -20,28 +20,36 @@ import static java.util.concurrent.TimeUnit.*;
 import java.util.concurrent.*;
 /* end library imports *************************************************************************************************/  
 
-Buttons paintB, nextB;
+Buttons paintB, nextB, setB;
 Coloring col;
-FBox paint, bottom, boundary, dbound, buttonBG, buttonBGH;
+FBox paint, bottom, boundary, dbound, presetBG, buttonBG, buttonBGH;
 ArrayList<FBody> bodies;
 
 int page = 0; // page 0 = canvas; page 1 = colour picker p1, page 2 = color picker p2
 int colour; //change this value to set colour of h_avatar in canvas
 PGraphics canvas;
 boolean            actionMode = false;
-boolean            pageChange = false, navChange=false;
+boolean            pageChange = false, navChange=false, presetChange=false;
 
 float[] nextPos= {11.8, 21.7};
 float[] paintPos={29.2,11.25};
 
+//float[] paintPos={29.2,11.25};
+//float[] setPos={0.5,0};
+
+int preset=0;
+
 /* Variables */
+
+ArrayList<FBox> seperators = new ArrayList<FBox>();
+ArrayList<FBox> seperators2 = new ArrayList<FBox>();
+
 FBox              b1,b2;
-FBox              v1,v2,v3,v4,v5,v6,v7,v8,v9,v10;
-FBox              g1,g2,g3;
-FBox              c1,c2,c3,c4,c5,c6,c7,c8,c9,c10;
+FBox              a1;
+
 
 FBox              next;
-
+FCircle           settings;
 
 PGraphics pickedColour;
 
@@ -51,14 +59,16 @@ PGraphics pickedColour;
 
 int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
-final int   rows = 2;                             // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
+
+int   rows = 1;                                   // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
 float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
-final int   NUM_SWATCHES = 7;                     // Number of swatches
-final int   CP_PAGES = 2;                         // 1 or 2 - Number of pages for the color picker
-final float RATIO = 2;                            // Ratio of swatch width to swatch spacing
+int   NUM_SWATCHES = 3;                           // Number of swatches
+int   CP_PAGES = 1;                               // 1 or 2 - Number of pages for the color picker
+float RATIO = 2;                                  // Ratio of swatch width to swatch spacing
 final int   SWATCH_HEIGHT = 130;                  // Height of the rows of swatches
-final int   CP_LEFT_INDENT = 20;                  // Space between left of the screen and left edge of color picker
-final int   CP_RIGHT_INDENT = 280;                // Space between right of the screen and right edge of color picker
+final int   CP_LEFT_INDENT = 50;                  // Space between left of the screen and left edge of color picker
+int   CP_RIGHT_INDENT = 280;                      // Space between right of the screen and right edge of color picker
+
 color[]     colors1 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
 color[]     colors2 = new color[NUM_SWATCHES];    // Array containting the second row of colors 
 color[]     colors3 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
@@ -158,7 +168,9 @@ size(1200, 900);
 *      mac:          haplyBoard = new Board(this, "/dev/cu.usbmodem1411", 0);
 */
 
+
 haplyBoard          = new Board(this, Serial.list()[2], 0);
+
 widgetOne           = new Device(widgetOneID, haplyBoard);
 pantograph          = new Pantograph();
 
@@ -202,11 +214,15 @@ world.setEdgesFriction(0.1);
 paintB = new Buttons(1040, 1400, 0.4, 'h');
 nextB = new Buttons(800, 1100, 0.25, 'v');
 
+setB = new Buttons(0, 120, 0.6, 'n');
+
 col = new Coloring();
 canvas = createGraphics(1200,900);
 world.draw();
 
+
 colorMode(RGB, 255, 255, 255);
+
 for (int i = 0; i<NUM_SWATCHES; i++)
     colors2[i] = color(255, 255, 255);
 
@@ -230,7 +246,6 @@ void draw() {
         pageSelector(); 
         update_animation(angles.x*radsPerDegree, angles.y*radsPerDegree, posEE.x, posEE.y);
     }
-    
 }
 /* end draw section ****************************************************************************************************/
 
@@ -249,6 +264,7 @@ class SimulationThread implements Runnable{
     
     public void run() {
         /* put haptic simulation code here, runs repeatedly at 1kHz as defined in setup */ 
+
         renderingForce = true;
         
         if (haplyBoard.data_available()) {
@@ -274,42 +290,11 @@ class SimulationThread implements Runnable{
         torques.set(widgetOne.set_device_torques(fEE.array()));
         widgetOne.device_write_torques(); 
 
-        /*
-
-        if (s.h_avatar.isTouchingBody(paint)) {
-            if (page == 0 &&!pageChange){
-                page = 1;
-                pageChange =true;
-                //print(pageChange);
-            }
-            if (page == 1 &&!pageChange){
-                page = 0;
-                pageChange =true;
-                //print(pageChange);
-            }
-
-            
-        }*/
             
         if (s.h_avatar.isTouchingBody(boundary)) {
             pageChange =false;
             //print(pageChange);
         }
-
-        /*  
-        if (s.h_avatar.isTouchingBody(next)) {
-            if (page == 1 &&!navChange){
-                page = 2; 
-                navChange =true;
-                //print(pageChange);
-            }
-            if (page == 2 &&!navChange){
-                page = 1;
-                navChange =true;
-                //print(pageChange);
-            }
-            
-        }*/
         
         if (s.h_avatar.getX()>27.95){
               paint.setPosition(s.h_avatar.getX()+1.2, paintPos[1]);
@@ -325,7 +310,8 @@ class SimulationThread implements Runnable{
               }
             }
         
-        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() <= 23 && page!=0){
+        if (s.h_avatar.getY()>20.45 && s.h_avatar.getX() <= (nextPos[0]+11.3) && page!=0 && CP_PAGES>=2){
+
                next.setPosition(nextPos[0], s.h_avatar.getY()+1.2);
                if (s.h_avatar.getY()>22.1 && !navChange){
                 if (page == 1){
@@ -337,7 +323,8 @@ class SimulationThread implements Runnable{
                 navChange =true;
               }
             }
-        if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > 23)){
+
+        if (next.getY()> nextPos[1] && (s.h_avatar.getY()<=20.45 || s.h_avatar.getX() > (nextPos[0]+11.3))){
           next.setPosition(nextPos[0], nextPos[1]);
         }
         if (paint.getX() > paintPos[0] && s.h_avatar.getX()<=27.95 ){
@@ -349,9 +336,107 @@ class SimulationThread implements Runnable{
             //print(pageChange);
         }
         
-        
-
+        //if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=3.5 && (page==1 || page==2)){ ((s.h_avatar.getX()-(3+setPos[0]))<=0) && ((s.h_avatar.getY()-(3+setPos[1]))<=0)
+        if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=3.5 && (page==1 || page==2)){
+          settings.setPosition(s.h_avatar.getX()-(cos(asin(s.h_avatar.getY()/3.15))*3.15+0.10), setPos[1]);
+          if ((s.h_avatar.getX()<=(setPos[0]+1.5)) && !presetChange){
+            preset++;
+            page=1;
             
+           // delete old preset from the screen 
+           for (int i =0; i < NUM_SWATCHES - 1; i++) {
+              world.remove(seperators.get(i));
+              }
+            if (rows == 2){
+              for (int i =0; i < NUM_SWATCHES - 1; i++) {
+              world.remove(seperators2.get(i));
+              }
+            }
+            world.remove(b1);
+            world.remove(b2);
+            world.remove(next);
+            world.remove(settings);
+            seperators.clear();
+            
+ 
+            // second preset parameters
+            if (preset == 1){
+              offset = 3.5;
+              RATIO =  2.5;
+              rows = 2;
+              NUM_SWATCHES = 5;
+              CP_PAGES = 2;
+              CP_RIGHT_INDENT = 250;
+              colors1 = expand(colors1, NUM_SWATCHES);
+              colors2 = expand(colors2, NUM_SWATCHES);
+              colors3 = expand(colors3, NUM_SWATCHES);
+              colors4 = expand(colors4, NUM_SWATCHES);
+
+               for (int i = 0; i<NUM_SWATCHES; i++)
+                   colors2[i] = color(255, 255, 255);
+            } 
+            
+            // thrid preset parameters
+            else if (preset == 2){  
+              seperators.clear();
+              seperators2.clear();
+              
+              offset = 3.5;
+              RATIO =  3.0;
+              rows = 2;
+              NUM_SWATCHES = 7;
+              CP_PAGES = 2;
+              CP_RIGHT_INDENT = 230;
+              colors1 = expand(colors1, NUM_SWATCHES+1);
+              colors2 = expand(colors2, NUM_SWATCHES+1);
+              colors3 = expand(colors3, NUM_SWATCHES+1);
+              colors4 = expand(colors4, NUM_SWATCHES+1);
+
+               for (int i = 0; i<NUM_SWATCHES; i++)
+                   colors2[i] = color(255, 255, 255);
+              
+            } 
+            
+            // default preset parameters
+            else {
+              seperators.clear();
+              seperators2.clear();
+              
+              
+              offset = 0;
+              RATIO =  2.0;
+              rows = 1;
+              NUM_SWATCHES = 3;
+              CP_PAGES = 1;
+              CP_RIGHT_INDENT = 280;
+              
+              for (int i = 0; i<NUM_SWATCHES+1; i++){
+                colors1 = shorten(colors1);
+                colors2 = shorten(colors2);
+                colors3 = shorten(colors3);
+                colors4 = shorten(colors4);
+              }
+
+               for (int i = 0; i<NUM_SWATCHES; i++)
+                   colors2[i] = color(255, 255, 255);
+            }
+             
+            background(255);
+  
+            drawColourPicker();
+            if (preset>=3)
+              preset=0;
+            presetChange=true;
+          }
+        }
+        if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))>=3.55 && (page==1 || page==2)){
+          presetChange=false;
+        }
+        if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))>=3.5 && (page==1 || page==2)){
+          settings.setPosition(setPos[0], setPos[1]);
+        }
+              
+          
         renderingForce = false;
     }
 }
@@ -373,24 +458,27 @@ void page0(){
             b.setNoStroke();
         }
     }
-
+    if (CP_PAGES>=2){
     next.dettachImage();
-    buttonBGH.dettachImage();
+    }
+    settings.dettachImage();
+    presetBG.dettachImage();
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     col.draw(canvas, red(colour), green(colour), blue(colour), Math.round(pos.x), Math.round(pos.y), 20, actionMode);
     image(canvas,0,0);
     if (!pageChange) {
-        // PImage img =loadImage("assets/paint.png");
+
         PImage img2 = loadImage("assets/buttonBackground2.png");
         buttonBG.attachImage(img2);
-        PImage img =loadImage("assets/palette2.png");
+        PImage img = loadImage("assets/palette2.png");
         paint.attachImage(img);
     }
     world.draw();
     
 }
 void page1(){
+
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -411,6 +499,12 @@ void page1(){
             }
         }
     }
+
+    PImage img = loadImage("assets/settings.png");
+    settings.attachImage(img);
+    img=loadImage("assets/presetBackground.png");
+    presetBG.attachImage(img);
+    
     if(CP_PAGES >=2){
         if (page==1 && !navChange){
         PImage img = loadImage("assets/hButtonBackground2.png");
@@ -433,10 +527,11 @@ void page1(){
     }
     // Color in the swatches
     drawSwatches();
+
     if(newSwatchSelected){
         animateGradientExpansion();
     }
-    
+
     // Check if the end effector is over the colorswatches, and if so, update selected color
     if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
@@ -449,6 +544,7 @@ void page1(){
             colors2 = getShades(colour);
         if(CP_PAGES == 2)
             updateRow2();
+
     } else if (s.h_avatar.getX() * pixelsPerCentimeter > CP_LEFT_INDENT 
     && s.h_avatar.getX() * pixelsPerCentimeter < width - CP_RIGHT_INDENT
     && s.h_avatar.getY() * pixelsPerCentimeter > height / 2 + offset * pixelsPerCentimeter - SWATCH_HEIGHT / 2 - 30
@@ -462,9 +558,11 @@ void page1(){
     }
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     world.draw();
+    setPresets();
 }
 
 void page2(){
+
     bodies = world.getBodies();
     //print(bodies);
     for (FBody b: bodies) { 
@@ -486,6 +584,10 @@ void page2(){
         }
     }
 
+    PImage img = loadImage("assets/settings.png");
+    settings.attachImage(img);
+    img=loadImage("assets/presetBackground.png");
+    presetBG.attachImage(img);
     if(CP_PAGES >= 2){
         if (page==1 && !navChange){
             PImage img = loadImage("assets/hButtonBackground2.png");
@@ -526,6 +628,8 @@ void page2(){
     }
     s.h_avatar.setFill(red(colour), green(colour), blue(colour));
     world.draw();
+    setPresets();
+
 }
     
     
@@ -548,6 +652,7 @@ void pageSelector() {
     
 public void drawGUI() {
 
+
     buttonBG = new FBox(1.75, 25.5);
     PImage img2 = loadImage("assets/buttonBackground2.png");
     buttonBG.attachImage(img2);
@@ -561,6 +666,7 @@ public void drawGUI() {
 
     paint = new FBox(1.75, 25.5);
     PImage img = loadImage("assets/palette2.png");
+
     paint.attachImage(img);
     paint.setFill(0);
     paint.setPosition(paintPos[0], paintPos[1]);
@@ -624,6 +730,7 @@ public void drawSwatches() {
                             widthOfSwatch, (float)SWATCH_HEIGHT, colors1[i], colors1[i+1]);
             }
             
+
             if (rows == 2 && newSwatchSelected == false) {
                 if(colors2.length == NUM_SWATCHES){
                     colorMode(HSB, 360, 100, 100);
@@ -776,9 +883,6 @@ void updateRow2(){
     // Figure out which color to expand
     float closestHue = hue(colors1[0]);
     for (int i = 0; i < NUM_SWATCHES+1; i++){
-        // print(i);
-        // print(": ");
-        // print(hue(colors1[i]));
         if(abs(hue(colors1[i])-hue(colour)) < abs(closestHue-hue(colour))){
             closestHue = hue(colors1[i]);
         }
@@ -791,7 +895,7 @@ void updateRow2(){
     }else{
         colors2 = getColors(closestHue - (coef + 0.05)*360/(NUM_SWATCHES), closestHue + (coef + 1.05)*360/(NUM_SWATCHES));
     }
-    
+
     // extrapolate to add an extra color at the end of the array
     colorMode(HSB, 360, 100, 100);
     color newColor = color(2.0*hue(colors2[NUM_SWATCHES-1]) - hue(colors2[NUM_SWATCHES-2]), 100, 100);
@@ -867,40 +971,45 @@ public void drawColourPicker() {
         //print(offset);
         // Create N-1 separations between each swatch.FBoxes with white color fill and black stroke of weight 12.
         for (int i =0; i < NUM_SWATCHES - 1; i++) {
-            g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
+          
+            a1 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
             //g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, edgeTopLeftY + worldHeight / 2.0 - offset); 
-            g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 2);
-            g3.setFillColor(color(255,255,255));
-            g3.setStrokeWeight(12);
-            g3.setStrokeColor(color(0,0,0));
-            g3.setStaticBody(true);
-            g3.setName("swatchSpacer");
-            world.add(g3);
+            a1.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 - offset - 2);
+            a1.setFillColor(color(255,255,255));
+            a1.setStrokeWeight(12);
+            a1.setStrokeColor(color(0,0,0));
+            a1.setStaticBody(true);
+            a1.setName("swatchSpacer");
+            seperators.add(a1);
+            world.add(seperators.get(i));
         }
         
         // Draw Right edge
-        b1 = new FBox(0.3, 13.0);
-        b1.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 1.8); 
-        b1.setFill(0);
-        b1.setNoStroke();
-        b1.setStaticBody(true);
-        world.add(b1);
+        b2 = new FBox(0.3, 13.0);
+        b2.setPosition((width - CP_RIGHT_INDENT) / ppcm, edgeTopLeftY + worldHeight / 2.0 - 1.8); 
+        b2.setFill(0);
+        b2.setNoStroke();
+        b2.setStaticBody(true);
+        world.add(b2);
+
         
         // Second Row of swatches
         if (rows == 2) {
             for (int i =0; i < NUM_SWATCHES - 1; i++) {
-                g3 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
-                g3.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 2); 
-                g3.setFillColor(color(255,255,255));
-                g3.setStrokeWeight(12);
-                g3.setStrokeColor(color(0,0,0));
-                g3.setStaticBody(true);
-                g3.setName("swatchSpacer");
-                world.add(g3);
+                a1 = new FBox(widthOfSpace / ppcm,(SWATCH_HEIGHT + 10) / ppcm);
+                a1.setPosition((CP_LEFT_INDENT + (i + 1) * (widthOfSwatch + widthOfSpace) - widthOfSpace / 2) / ppcm, worldHeight / 2.0 + offset - 2); 
+                a1.setFillColor(color(255,255,255));
+                a1.setStrokeWeight(12);
+                a1.setStrokeColor(color(0,0,0));
+                a1.setStaticBody(true);
+                a1.setName("swatchSpacer");
+                seperators2.add(a1);
+                world.add(seperators2.get(i));
             }     
         }
         
         
+
         buttonBGH = new FBox(26.75, 1.75);
         buttonBGH.setPosition(nextPos[0], nextPos[1]);
         buttonBGH.setStatic(true);
@@ -910,13 +1019,34 @@ public void drawColourPicker() {
         world.add(buttonBGH);
 
         next = new FBox(26.75, 1.75);
+
         next.setPosition(nextPos[0], nextPos[1]);
         next.setStatic(true);
         next.setSensor(true);
         next.setNoStroke();
-        next.setFill(100, 100, 100);
+        next.setNoFill();
         next.setName("semireserved");
         world.add(next);
+        
+        
+        presetBG= new FBox(CP_LEFT_INDENT/ppcm, worldHeight);
+        presetBG.setPosition(CP_LEFT_INDENT/(2*ppcm), worldHeight/2-0.75);
+        presetBG.setStatic(true);
+        presetBG.setSensor(true);
+        presetBG.setNoStroke();
+        presetBG.setNoFill();
+        //presetBG.setFill(224,224,224);
+        presetBG.setName("semireserved");
+        world.add(presetBG);
+        
+        settings = new FCircle(5);
+        settings.setPosition(setPos[0], setPos[1]);
+        settings.setStatic(true);
+        settings.setSensor(true);
+        settings.setNoStroke();
+        settings.setNoFill();
+        settings.setName("semireserved");
+        world.add(settings);
         
     } 
 }
@@ -935,10 +1065,29 @@ void update_animation(float th1, float th2, float xE, float yE) {
 public void forceSetter() {
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
     PVector f = paintB.applyForces(5, 15, pos.x, fEE);
-    if (page !=0 && s.h_avatar.getX()<=23) {
+
+    if (page !=0 && s.h_avatar.getX()<=(nextPos[0]+11.3) && CP_PAGES>=2) {
         f = nextB.applyForces( -10, -20, pos.y, fEE);
     }
+    if (page!=0 && sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))<=4){
+      f= setB.applyForces( -3, -5, pos.x, fEE);
+    }
     fEE.set(f);
+}
+
+public void setPresets(){
+  fill(255);
+  noStroke();
+  rect( 5 , worldHeight*pixelsPerCentimeter/4, CP_LEFT_INDENT-10, worldHeight*pixelsPerCentimeter/2, 10);
+  textSize(35);
+  fill(0);
+  char[] mode={'M', 'O', 'D', 'E', ' ', Character.forDigit((preset+1), 10)};
+  float[] textPos={15, worldHeight*pixelsPerCentimeter/2-100,  30};// last value is spacing between letters
+  for (int i=0; i<mode.length; i++)
+    {
+      text(mode[i], textPos[0], textPos[1]);
+      textPos[1]+= textPos[2];
+    }
 }
 
 PVector device_to_graphics(PVector deviceFrame) {
