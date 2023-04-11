@@ -413,16 +413,16 @@ void page1(){
     }
     if(CP_PAGES >=2){
         if (page==1 && !navChange){
-        PImage img = loadImage("assets/hButtonBackground2.png");
-        buttonBGH.attachImage(img);      
-        img = loadImage("assets/next.png");
-        next.attachImage(img);
+            PImage img = loadImage("assets/hButtonBackground2.png");
+            buttonBGH.attachImage(img);      
+            img = loadImage("assets/next.png");
+            next.attachImage(img);
         }
         if (page==2 && !navChange){
-        PImage img = loadImage("assets/hButtonBackground2.png");
-        buttonBGH.attachImage(img);
-        img = loadImage("assets/prev.png");
-        next.attachImage(img);
+            PImage img = loadImage("assets/hButtonBackground2.png");
+            buttonBGH.attachImage(img);
+            img = loadImage("assets/prev.png");
+            next.attachImage(img);
         }
     }
     //next.setSensor(true);

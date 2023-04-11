@@ -35,7 +35,7 @@ float[] nextPos= {11.8, 21.7};
 float[] paintPos={29.2,11.25};
 
 //float[] paintPos={29.2,11.25};
-//float[] setPos={0.5,0};
+float[] setPos={0.5,0};
 
 int preset=0;
 
@@ -77,7 +77,7 @@ color[]     colors4 = new color[NUM_SWATCHES];    // Array containting the secon
 int         swatchID = -1;                         // Last selected swatch (takes value 0 to NUM_SWATCHES-1)
 boolean     newSwatchSelected = false;            // True if a new swatch has been selected, false otherwise.
 int swatchWidth = 30;
-int animationSpeed = 60; //60
+int animationSpeed = 90; //60
 float iter = 0;
 int descent = 0;
 
@@ -193,7 +193,7 @@ world               = new FWorld();
 deviceOrigin.add(worldPixelWidth/2, 0);
 
 if (rows == 1){
-offset = 0;
+    offset = 0;
 }
 
 drawGUI();
@@ -320,7 +320,7 @@ class SimulationThread implements Runnable{
                 else{
                   page = 1;
                 }
-                navChange =true;
+                navChange = true;
               }
             }
 
@@ -367,10 +367,10 @@ class SimulationThread implements Runnable{
               NUM_SWATCHES = 5;
               CP_PAGES = 2;
               CP_RIGHT_INDENT = 250;
-              colors1 = expand(colors1, NUM_SWATCHES);
-              colors2 = expand(colors2, NUM_SWATCHES);
-              colors3 = expand(colors3, NUM_SWATCHES);
-              colors4 = expand(colors4, NUM_SWATCHES);
+              colors1 = expand(colors1, NUM_SWATCHES+1);
+              colors2 = expand(colors2, NUM_SWATCHES+1);
+              colors3 = expand(colors3, NUM_SWATCHES+1);
+              colors4 = expand(colors4, NUM_SWATCHES+1);
 
                for (int i = 0; i<NUM_SWATCHES; i++)
                    colors2[i] = color(255, 255, 255);
@@ -459,7 +459,8 @@ void page0(){
         }
     }
     if (CP_PAGES>=2){
-    next.dettachImage();
+        next.dettachImage();
+        buttonBGH.dettachImage();
     }
     settings.dettachImage();
     presetBG.dettachImage();
@@ -507,28 +508,27 @@ void page1(){
     
     if(CP_PAGES >=2){
         if (page==1 && !navChange){
-        PImage img = loadImage("assets/hButtonBackground2.png");
-        buttonBGH.attachImage(img);      
-        img = loadImage("assets/next.png");
-        next.attachImage(img);
+            img = loadImage("assets/hButtonBackground2.png");
+            buttonBGH.attachImage(img);      
+            img = loadImage("assets/next.png");
+            next.attachImage(img);
         }
         if (page==2 && !navChange){
-        PImage img = loadImage("assets/hButtonBackground2.png");
-        buttonBGH.attachImage(img);
-        img = loadImage("assets/prev.png");
-        next.attachImage(img);
+            img = loadImage("assets/hButtonBackground2.png");
+            buttonBGH.attachImage(img);
+            img = loadImage("assets/prev.png");
+            next.attachImage(img);
         }
     }
     //next.setSensor(true);
     if (!pageChange) {
         // PImage img = loadImage("assets/canvas.png");
-        PImage img = loadImage("assets/exit2.png");
+        img = loadImage("assets/exit2.png");
         paint.attachImage(img);
     }
     // Color in the swatches
     drawSwatches();
-
-    if(newSwatchSelected){
+    if(newSwatchSelected && CP_PAGES == 2){
         animateGradientExpansion();
     }
 
@@ -586,17 +586,17 @@ void page2(){
 
     PImage img = loadImage("assets/settings.png");
     settings.attachImage(img);
-    img=loadImage("assets/presetBackground.png");
+    img = loadImage("assets/presetBackground.png");
     presetBG.attachImage(img);
     if(CP_PAGES >= 2){
-        if (page==1 && !navChange){
-            PImage img = loadImage("assets/hButtonBackground2.png");
+        if (page==1 && !pageChange){
+            img = loadImage("assets/hButtonBackground2.png");
             buttonBGH.attachImage(img);
             img = loadImage("assets/next.png");
             next.attachImage(img);
         }
-        if (page==2 && !navChange){
-            PImage img = loadImage("assets/hButtonBackground2.png");
+        if (page==2 && !pageChange){
+            img = loadImage("assets/hButtonBackground2.png");
             buttonBGH.attachImage(img);
             img = loadImage("assets/prev.png");
             next.attachImage(img);
@@ -604,7 +604,7 @@ void page2(){
     }
     //next.setSensor(true);
     if (!pageChange) {
-        PImage img = loadImage("assets/exit2.png");
+        img = loadImage("assets/exit2.png");
         paint.attachImage(img);
     }
     // Color in the swatches
@@ -666,7 +666,6 @@ public void drawGUI() {
 
     paint = new FBox(1.75, 25.5);
     PImage img = loadImage("assets/palette2.png");
-
     paint.attachImage(img);
     paint.setFill(0);
     paint.setPosition(paintPos[0], paintPos[1]);
@@ -1019,7 +1018,6 @@ public void drawColourPicker() {
         world.add(buttonBGH);
 
         next = new FBox(26.75, 1.75);
-
         next.setPosition(nextPos[0], nextPos[1]);
         next.setStatic(true);
         next.setSensor(true);
@@ -1029,7 +1027,7 @@ public void drawColourPicker() {
         world.add(next);
         
         
-        presetBG= new FBox(CP_LEFT_INDENT/ppcm, worldHeight);
+        presetBG = new FBox(CP_LEFT_INDENT/ppcm, worldHeight);
         presetBG.setPosition(CP_LEFT_INDENT/(2*ppcm), worldHeight/2-0.75);
         presetBG.setStatic(true);
         presetBG.setSensor(true);
