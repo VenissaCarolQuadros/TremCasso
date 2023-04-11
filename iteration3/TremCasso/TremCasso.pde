@@ -31,13 +31,13 @@ PGraphics canvas;
 boolean            actionMode = false;
 boolean            pageChange = false, navChange=false, presetChange=false;
 
-float[] nextPos= {11.8, 21.7};
-float[] paintPos={29.2,11.25};
+float[] nextPos = {11.8, 21.7};
+float[] paintPos = {29.2,11.25};
 
 //float[] paintPos={29.2,11.25};
-float[] setPos={0.5,0};
+float[] setPos = {0.5,0};
 
-int preset=0;
+int preset = 0;
 
 /* Variables */
 
@@ -61,7 +61,7 @@ int         baseColor;
 char        orientation = 'v';                    // 'v' or 'h' - Orientation of the color picker
 
 int   rows = 1;                                   // 1 or 2 - Number of hierarchical levels displayed at a time on the screen
-float       offset = 3.5;                         // Offset from center between two hierarchy levels if rows == 2
+float offset = 3.5;                               // Offset from center between two hierarchy levels if rows == 2
 int   NUM_SWATCHES = 3;                           // Number of swatches
 int   CP_PAGES = 1;                               // 1 or 2 - Number of pages for the color picker
 float RATIO = 2;                                  // Ratio of swatch width to swatch spacing
@@ -74,7 +74,7 @@ color[]     colors2 = new color[NUM_SWATCHES];    // Array containting the secon
 color[]     colors3 = new color[NUM_SWATCHES];    // Array containting the first row of colors 
 color[]     colors4 = new color[NUM_SWATCHES];    // Array containting the second row of colors 
 
-int         swatchID = -1;                         // Last selected swatch (takes value 0 to NUM_SWATCHES-1)
+int         swatchID = -1;                        // Last selected swatch (takes value 0 to NUM_SWATCHES-1)
 boolean     newSwatchSelected = false;            // True if a new swatch has been selected, false otherwise.
 int swatchWidth = 30;
 int animationSpeed = 90; //60
@@ -306,7 +306,7 @@ class SimulationThread implements Runnable{
                 else{
                   page = 0;
                 }
-                pageChange =true;
+                pageChange = true;
               }
             }
         
@@ -344,7 +344,7 @@ class SimulationThread implements Runnable{
             page=1;
             
            // delete old preset from the screen 
-           for (int i =0; i < NUM_SWATCHES - 1; i++) {
+           for (int i = 0; i < NUM_SWATCHES - 1; i++) {
               world.remove(seperators.get(i));
               }
             if (rows == 2){
@@ -354,7 +354,7 @@ class SimulationThread implements Runnable{
             }
             world.remove(b1);
             world.remove(b2);
-            world.remove(next);
+            // world.remove(next);
             world.remove(settings);
             seperators.clear();
             
@@ -399,35 +399,41 @@ class SimulationThread implements Runnable{
             
             // default preset parameters
             else {
-              seperators.clear();
-              seperators2.clear();
-              
-              
-              offset = 0;
-              RATIO =  2.0;
-              rows = 1;
-              NUM_SWATCHES = 3;
-              CP_PAGES = 1;
-              CP_RIGHT_INDENT = 280;
-              
-              for (int i = 0; i<NUM_SWATCHES+1; i++){
-                colors1 = shorten(colors1);
-                colors2 = shorten(colors2);
-                colors3 = shorten(colors3);
-                colors4 = shorten(colors4);
-              }
+                seperators.clear();
+                seperators2.clear();
+                
+                
+                offset = 0;
+                RATIO =  2.0;
+                rows = 1;
+                NUM_SWATCHES = 3;
+                CP_PAGES = 1;
+                CP_RIGHT_INDENT = 280;
 
-               for (int i = 0; i<NUM_SWATCHES; i++)
-                   colors2[i] = color(255, 255, 255);
-            }
+                    next.dettachImage();
+                    buttonBGH.dettachImage();
+              
+                for (int i = 0; i<NUM_SWATCHES+1; i++){
+                    colors1 = shorten(colors1);
+                    colors2 = shorten(colors2);
+                    colors3 = shorten(colors3);
+                    colors4 = shorten(colors4);
+                }
+                
+                colorMode(RGB, 255, 255, 255);
+                for (int i = 0; i<NUM_SWATCHES; i++)
+                    colors2[i] = color(255, 255, 255);
+                }
              
-            background(255);
-  
-            drawColourPicker();
-            if (preset>=3)
-              preset=0;
-            presetChange=true;
-          }
+                background(255);
+    
+                drawColourPicker();
+                if (preset>=3)
+                    preset=0;
+                
+                presetChange = true;
+                swatchID = -1;
+            }
         }
         if (sqrt(pow(s.h_avatar.getX()-0.7, 2)+pow(s.h_avatar.getY()+0.5, 2))>=3.55 && (page==1 || page==2)){
           presetChange=false;
@@ -458,10 +464,9 @@ void page0(){
             b.setNoStroke();
         }
     }
-    if (CP_PAGES>=2){
-        next.dettachImage();
-        buttonBGH.dettachImage();
-    }
+
+    next.dettachImage();
+    buttonBGH.dettachImage();
     settings.dettachImage();
     presetBG.dettachImage();
     Vec2 pos = hAPI_Fisica.worldToScreen(s.h_avatar.getX(), s.h_avatar.getY());
@@ -599,7 +604,7 @@ void page2(){
             img = loadImage("assets/hButtonBackground2.png");
             buttonBGH.attachImage(img);
             img = loadImage("assets/prev.png");
-            next.attachImage(img);
+            next.attachImage(img); 
         }
     }
     //next.setSensor(true);
@@ -675,6 +680,25 @@ public void drawGUI() {
     paint.setName("reserved");
     world.add(paint);
 
+    buttonBGH = new FBox(26.75, 1.75);
+    buttonBGH.setPosition(nextPos[0], nextPos[1]);
+    buttonBGH.setStatic(true);
+    buttonBGH.setSensor(true);
+    buttonBGH.setNoStroke();
+    buttonBGH.setName("semireserved");
+    // PImage img = loadImage("assets/hButtonBackground2.png");
+    // buttonBGH.attachImage(img);
+    world.add(buttonBGH);
+
+    next = new FBox(26.75, 1.75);
+    next.setPosition(nextPos[0], nextPos[1]);
+    next.setStatic(true);
+    next.setSensor(true);
+    next.setNoStroke();
+    next.setNoFill();
+    next.setName("semireserved");
+    world.add(next);
+
     boundary = new FBox(0.5, 25.5);
     boundary.setNoFill();
     boundary.setPosition(26.9,12.5);
@@ -692,6 +716,16 @@ public void drawGUI() {
     dbound.setNoStroke();
     dbound.setName("reserved");
     world.add(dbound);
+
+    presetBG = new FBox(CP_LEFT_INDENT/pixelsPerCentimeter, worldHeight);
+    presetBG.setPosition(CP_LEFT_INDENT/(2*pixelsPerCentimeter), worldHeight/2-0.75);
+    presetBG.setStatic(true);
+    presetBG.setSensor(true);
+    presetBG.setNoStroke();
+    presetBG.setNoFill();
+    //presetBG.setFill(224,224,224);
+    presetBG.setName("semireserved");
+    world.add(presetBG);
     
 }
 
@@ -1008,34 +1042,6 @@ public void drawColourPicker() {
         }
         
         
-
-        buttonBGH = new FBox(26.75, 1.75);
-        buttonBGH.setPosition(nextPos[0], nextPos[1]);
-        buttonBGH.setStatic(true);
-        buttonBGH.setSensor(true);
-        buttonBGH.setNoStroke();
-        buttonBGH.setName("semireserved");
-        world.add(buttonBGH);
-
-        next = new FBox(26.75, 1.75);
-        next.setPosition(nextPos[0], nextPos[1]);
-        next.setStatic(true);
-        next.setSensor(true);
-        next.setNoStroke();
-        next.setNoFill();
-        next.setName("semireserved");
-        world.add(next);
-        
-        
-        presetBG = new FBox(CP_LEFT_INDENT/ppcm, worldHeight);
-        presetBG.setPosition(CP_LEFT_INDENT/(2*ppcm), worldHeight/2-0.75);
-        presetBG.setStatic(true);
-        presetBG.setSensor(true);
-        presetBG.setNoStroke();
-        presetBG.setNoFill();
-        //presetBG.setFill(224,224,224);
-        presetBG.setName("semireserved");
-        world.add(presetBG);
         
         settings = new FCircle(5);
         settings.setPosition(setPos[0], setPos[1]);
